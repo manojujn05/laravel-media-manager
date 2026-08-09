@@ -2,7 +2,7 @@
 
 namespace Innopanda\AssetManager\Tests\Feature;
 
-use Tests\TestCase;
+use Innopanda\AssetManager\Tests\TestCase;
 use Innopanda\AssetManager\Models\Folder;
 use Innopanda\AssetManager\Livewire\MediaBrowser;
 use Livewire\Livewire;

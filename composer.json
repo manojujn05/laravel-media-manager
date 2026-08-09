@@ -6,7 +6,7 @@
   "authors": [
     {
       "name": "Manoj Agrawal",
-      "email": "[EMAIL_ADDRESS]"
+      "email": "manoj@example.com"
     }
   ],
   "require": {
@@ -25,6 +25,15 @@
     "files": [
       "src/Support/AssetFunctions.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Innopanda\\AssetManager\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "orchestra/testbench": "^10.0",
+    "phpunit/phpunit": "^10.5|^11.0"
   },
   "extra": {
     "laravel": {
