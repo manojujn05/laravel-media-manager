@@ -2,7 +2,7 @@
 
     @if($open)
 
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
 
             <div class="w-full max-w-md rounded-lg bg-white p-6">
 

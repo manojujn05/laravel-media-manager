@@ -11,9 +11,9 @@
             </h2>
 
             <div class="mt-6 space-y-3 text-sm">
-                <div class="flex justify-between">
-                    <span>File Name</span>
-                    <span>{{ $asset->title }}</span>
+                <div class="flex justify-between gap-4">
+                    <span class="shrink-0">File Name</span>
+                    <span class="text-right break-all">{{ $asset->title }}</span>
                 </div>
 
                 <div class="flex justify-between">
@@ -44,9 +44,27 @@
 
             <div class="mt-8 space-y-3">
                 <button
+                    wire:click="selectAsset"
+                    class="w-full rounded-lg bg-green-600 py-2 text-white hover:bg-green-700 font-bold shadow-sm transition-colors">
+                    ✓ Select Asset
+                </button>
+
+                <button
+                    wire:click="preview"
+                    class="w-full rounded-lg bg-gray-600 py-2 text-white hover:bg-gray-700">
+                    Preview
+                </button>
+
+                <button
                     wire:click="download"
                     class="w-full rounded-lg bg-blue-600 py-2 text-white hover:bg-blue-700">
                     Download
+                </button>
+
+                <button
+                    wire:click="copyUrl"
+                    class="w-full rounded-lg bg-indigo-600 py-2 text-white hover:bg-indigo-700">
+                    Copy URL
                 </button>
 
                 <button

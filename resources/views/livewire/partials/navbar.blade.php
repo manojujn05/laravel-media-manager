@@ -45,7 +45,7 @@
         </label>
 
         {{-- Reset Filters Button --}}
-        @if($search || $type || $favorites || $folder || $tag || $sort !== 'latest')
+        @if($search || $type || $favorites || $folder || $sort !== 'latest')
             <button
                 wire:click="resetFilters"
                 type="button"

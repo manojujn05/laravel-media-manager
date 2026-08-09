@@ -21,7 +21,7 @@ class AssetApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Asset::with(['folder', 'tags']);
+        $query = Asset::with(['folder']);
 
         if ($request->has('folder_id')) {
             $query->where('folder_id', $request->query('folder_id'));
@@ -70,14 +70,12 @@ class AssetApiController extends Controller
             'folder_id' => $request->input('folder_id'),
         ]);
 
-        if ($request->has('tags')) {
-            $asset->tags()->sync($request->input('tags'));
-        }
+
 
         return response()->json([
             'success' => true,
             'message' => 'Asset uploaded successfully.',
-            'data' => new AssetResource($asset->load(['folder', 'tags'])),
+            'data' => new AssetResource($asset->load(['folder'])),
         ], 201);
     }
 
@@ -126,31 +124,5 @@ class AssetApiController extends Controller
         ]);
     }
 
-    /**
-     * POST /assets/tag
-     * Bulk attach, detach or sync tags on assets.
-     */
-    public function tag(TagAssetRequest $request): JsonResponse
-    {
-        $assetIds = $request->input('asset_ids');
-        $tagIds = $request->input('tag_ids');
-        $action = $request->input('action', 'sync');
 
-        $assets = Asset::whereIn('id', $assetIds)->get();
-
-        foreach ($assets as $asset) {
-            if ($action === 'attach') {
-                $asset->tags()->syncWithoutDetaching($tagIds);
-            } elseif ($action === 'detach') {
-                $asset->tags()->detach($tagIds);
-            } else {
-                $asset->tags()->sync($tagIds);
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Tags updated successfully for selected assets.',
-        ]);
-    }
 }

@@ -10,5 +10,4 @@ Route::prefix(config('asset-manager.api.prefix', 'api/asset-manager'))
         Route::post('/assets/upload', [AssetApiController::class, 'upload']);
         Route::delete('/assets', [AssetApiController::class, 'destroy']);
         Route::post('/assets/move', [AssetApiController::class, 'move']);
-        Route::post('/assets/tag', [AssetApiController::class, 'tag']);
     });

@@ -14,25 +14,15 @@ return [
         'application/pdf',
     ],
 
-    'usage_models' => [
-        'Workouts'    => \App\Models\Workout::class,
-        'Memberships' => \App\Models\Membership::class,
-        'Exercises'   => \App\Models\Exercise::class,
-        'Products'    => \App\Models\Product::class, 
-    ],
-
-    'thumbnails' => [
-
+   'thumbnails' => [
         'small' => [
             'width' => 150,
             'height' => 150,
         ],
-
         'medium' => [
             'width' => 400,
             'height' => 400,
         ],
-
         'large' => [
             'width' => 800,
             'height' => 800,

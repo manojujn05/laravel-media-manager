@@ -8,19 +8,9 @@
             <span class="text-xs font-medium text-gray-300">Selected</span>
         </div>
 
-        {{-- Favorite --}}
-        <button type="button" wire:click="bulkToggleFavorite(true)" class="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-amber-400 transition-colors text-xs flex items-center gap-1.5" title="Mark Favorite">
-            ⭐ <span>Favorite</span>
-        </button>
-
         {{-- Move --}}
         <button type="button" wire:click="$set('showBulkMoveModal', true)" class="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-indigo-400 transition-colors text-xs flex items-center gap-1.5" title="Move Files">
             📁 <span>Move</span>
-        </button>
-
-        {{-- Tag --}}
-        <button type="button" wire:click="$set('showBulkTagModal', true)" class="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-emerald-400 transition-colors text-xs flex items-center gap-1.5" title="Add Tags">
-            🏷️ <span>Tag</span>
         </button>
 
         {{-- Download Zip --}}
@@ -29,7 +19,7 @@
         </button>
 
         {{-- Delete --}}
-        <button type="button" wire:click="bulkDelete" wire:confirm="Are you sure you want to delete selected assets?" class="p-2 rounded-lg hover:bg-rose-950/50 text-rose-400 hover:text-rose-300 transition-colors text-xs flex items-center gap-1.5" title="Delete Selected">
+        <button type="button" wire:click="$set('showBulkDeleteModal', true)" class="p-2 rounded-lg hover:bg-rose-950/50 text-rose-400 hover:text-rose-300 transition-colors text-xs flex items-center gap-1.5" title="Delete Selected">
             🗑️ <span>Delete</span>
         </button>
 

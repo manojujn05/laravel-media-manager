@@ -1,8 +1,8 @@
-<div class="h-screen flex bg-gray-50/50 dark:bg-gray-950 font-sans relative antialiased text-gray-800 dark:text-gray-100">
+<div class="h-full flex bg-gray-50/50 dark:bg-gray-950 font-sans relative antialiased text-gray-800 dark:text-gray-100">
 
     <!-- Sidebar -->
-    <aside class="w-64 border-r border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-900 shrink-0 shadow-xs z-10">
-        <livewire:asset-manager.browser-sidebar :active-folder="$folder" :active-tag="$tag" />
+    <aside class="w-56 border-r border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-900 shrink-0 shadow-xs z-10">
+        <livewire:asset-manager.browser-sidebar :active-folder="$folder" />
     </aside>
 
     <!-- Main Content Area -->
@@ -39,14 +39,6 @@
                         </span>
                     @endif
 
-                    @if($tag && ($activeTagObj = $allTags->firstWhere('id', $tag)))
-                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow-2xs" style="background-color: {{ $activeTagObj->color }}">
-                            Tag: {{ $activeTagObj->name }}
-                        </span>
-                    @endif
                 </nav>
 
                 {{-- Sub-Folders Section --}}
@@ -72,7 +64,11 @@
 
                 {{-- Assets Display View --}}
                 @if($assets->count() > 0)
-                    @include('asset-manager::livewire.partials.grid')
+                    @if($view === 'list')
+                        @include('asset-manager::livewire.partials.list')
+                    @else
+                        @include('asset-manager::livewire.partials.grid')
+                    @endif
                 @else
                     {{-- Empty State --}}
                     <div class="flex-1 flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 dark:border-gray-800/80 rounded-2xl bg-white/40 dark:bg-gray-900/40 my-auto">
@@ -83,14 +79,14 @@
                         </div>
                         
                         <h4 class="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
-                            {{ $search || $favorites || $tag ? 'No Assets Found' : ($currentFolder ? $currentFolder->name . ' is Empty' : 'No Assets') }}
+                            {{ $search || $favorites ? 'No Assets Found' : ($currentFolder ? $currentFolder->name . ' is Empty' : 'No Assets') }}
                         </h4>
                         <p class="text-xs text-gray-400 mt-1 mb-5 max-w-sm">
-                            {{ $search || $favorites || $tag ? 'Try adjusting your search terms or active filters.' : 'There are no files uploaded in this directory yet.' }}
+                            {{ $search || $favorites ? 'Try adjusting your search terms or active filters.' : 'There are no files uploaded in this directory yet.' }}
                         </p>
 
                         <div class="flex items-center gap-3">
-                            @if($search || $type || $favorites || $folder || $tag || $sort !== 'latest')
+                            @if($search || $type || $favorites || $folder || $sort !== 'latest')
                                 <button 
                                     wire:click="resetFilters" 
                                     type="button" 
@@ -114,7 +110,7 @@
             </main>
 
             <!-- Asset Preview Sidebar -->
-            <aside class="w-96 border-l border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-900 shrink-0 shadow-xs">
+            <aside class="w-72 border-l border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-900 shrink-0 shadow-xs">
                 @include('asset-manager::livewire.partials.preview')
             </aside>
 
@@ -122,71 +118,24 @@
 
     </div>
 
-    {{-- Create Tag Modal --}}
-    @if($showTagModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/60 backdrop-blur-xs p-4">
-            <div class="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-2xl space-y-4">
-                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
-                    <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
-                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                        </svg>
-                        Create New Tag
-                    </h3>
-                    <button wire:click="$set('showTagModal', false)" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
 
-                <form wire:submit="createTag" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Tag Name</label>
-                        <input 
-                            type="text" 
-                            wire:model="newTagName" 
-                            placeholder="e.g. Hero Banners, Marketing" 
-                            class="w-full rounded-xl border border-gray-200 dark:border-gray-800 px-3.5 py-2 text-xs bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                        />
-                        @error('newTagName') <span class="text-rose-500 text-[10px] mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Badge Color</label>
-                        <div class="flex items-center gap-3">
-                            <input 
-                                type="color" 
-                                wire:model="newTagColor" 
-                                class="h-9 w-12 cursor-pointer rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent p-1"
-                            />
-                            <span class="text-xs font-mono text-gray-500 dark:text-gray-400">{{ $newTagColor }}</span>
-                        </div>
-                        @error('newTagColor') <span class="text-rose-500 text-[10px] mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-                        <button 
-                            type="button" 
-                            wire:click="$set('showTagModal', false)" 
-                            class="px-3.5 py-1.5 rounded-xl border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit" 
-                            class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-xs transition-all"
-                        >
-                            Save Tag
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
 
     {{-- Bulk Action Partials --}}
     @include('asset-manager::livewire.partials.bulk-action-bar')
     @include('asset-manager::livewire.partials.bulk-modals')
-@include('asset-manager::livewire.version-history-modal')
+    <livewire:asset-manager.create-folder />
+
+    @script
+    <script>
+        $wire.on('copy-to-clipboard', (event) => {
+            let url = event.url;
+            if (Array.isArray(event) && event[0].url) {
+                url = event[0].url;
+            }
+            if (url) {
+                navigator.clipboard.writeText(url);
+            }
+        });
+    </script>
+    @endscript
 </div>

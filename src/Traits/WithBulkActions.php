@@ -11,9 +11,7 @@ trait WithBulkActions
     public array $selectedAssets = [];
     public bool $selectAll = false;
     public string|int|null $bulkFolderId = null;
-    public array $bulkTagIds = [];
     public bool $showBulkMoveModal = false;
-    public bool $showBulkTagModal = false;
 
     // Toggle Select All Logic
     public function updatedSelectAll($value): void
@@ -34,28 +32,31 @@ trait WithBulkActions
 
     // 1. Bulk Delete
  // 1. Bulk Delete
-public function bulkDelete(): void
-{
-    if (empty($this->selectedAssets)) return;
+    public function bulkDelete(): void
+    {
+        if (empty($this->selectedAssets)) return;
 
-    // Ensure we flatten the array in case it got nested
-    $ids = collect($this->selectedAssets)->flatten()->filter()->toArray();
+        // Ensure we flatten the array in case it got nested
+        $ids = collect($this->selectedAssets)->flatten()->filter()->toArray();
 
-    if (empty($ids)) return;
+        if (empty($ids)) return;
 
-    $assets = Asset::whereIn('id', $ids)->get();
-    
-    foreach ($assets as $asset) {
-        // Check if path is not null before deleting from storage
-        if (!empty($asset->path)) {
-            Storage::disk($asset->disk ?? config('asset-manager.disk', 'public'))->delete($asset->path);
+        $assets = Asset::whereIn('id', $ids)->get();
+        
+        foreach ($assets as $asset) {
+            // Check if path is not null before deleting from storage
+            if (!empty($asset->path)) {
+                Storage::disk($asset->disk ?? config('asset-manager.disk', 'public'))->delete($asset->path);
+            }
+            $asset->delete();
         }
-        $asset->delete();
-    }
 
-    $this->clearSelection();
-    $this->dispatch('notify', 'Selected assets deleted successfully!');
-}
+        $this->clearSelection();
+        if (property_exists($this, 'showBulkDeleteModal')) {
+            $this->showBulkDeleteModal = false;
+        }
+        $this->dispatch('notify', 'Selected assets deleted successfully!');
+    }
 public function deleteAsset($id): void
 {
     $asset = Asset::find($id);
@@ -94,21 +95,7 @@ public function deleteAsset($id): void
         $this->dispatch('notify', 'Assets moved successfully!');
     }
 
-    // 4. Bulk Tagging
-    public function bulkAttachTags(): void
-    {
-        if (empty($this->selectedAssets) || empty($this->bulkTagIds)) return;
 
-        $assets = Asset::whereIn('id', $this->selectedAssets)->get();
-        foreach ($assets as $asset) {
-            $asset->tags()->syncWithoutDetaching($this->bulkTagIds);
-        }
-
-        $this->showBulkTagModal = false;
-        $this->bulkTagIds = [];
-        $this->clearSelection();
-        $this->dispatch('notify', 'Tags attached successfully!');
-    }
 
     // 5. Bulk Download Zip
     public function bulkDownloadZip()

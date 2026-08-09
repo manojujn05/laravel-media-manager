@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 // Trait Import
 use Innopanda\AssetManager\Traits\HasAssetDependencies;
-use Innopanda\AssetManager\Traits\HasAssetVersions;
 
 class Asset extends Model implements HasMedia
 {
@@ -24,7 +23,6 @@ class Asset extends Model implements HasMedia
     // use HasUuids;
     use InteractsWithMedia;
     use HasAssetDependencies;
-    use HasAssetVersions; 
 
     protected $table = 'assets';
 
@@ -83,11 +81,6 @@ class Asset extends Model implements HasMedia
     public function folder()
     {
         return $this->belongsTo(Folder::class);
-    }
-
-    public function tags(): BelongsToMany
-    {
-        return $this->belongsToMany(Tag::class, 'asset_taggables', 'asset_id', 'tag_id');
     }
 
     /*

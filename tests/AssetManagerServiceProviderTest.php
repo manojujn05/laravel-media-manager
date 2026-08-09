@@ -55,7 +55,7 @@ class AssetManagerServiceProviderTest extends TestCase
             'asset-manager.asset-picker-modal' => \Innopanda\AssetManager\Livewire\AssetPickerModal::class,
             'asset-manager.asset-uploader' => \Innopanda\AssetManager\Livewire\AssetUploader::class,
             'asset-manager.folder-tree' => \Innopanda\AssetManager\Livewire\FolderTree::class,
-            'asset-manager.version-history-modal' => \Innopanda\AssetManager\Livewire\VersionHistoryModal::class,
+
             'asset-manager.replace-file-drawer' => \Innopanda\AssetManager\Livewire\ReplaceFileDrawer::class,
         ];
 

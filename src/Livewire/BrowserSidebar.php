@@ -1,21 +1,14 @@
 <?php
 
 namespace Innopanda\AssetManager\Livewire;
-
 use Livewire\Component;
 use Innopanda\AssetManager\Models\Folder;
 use Innopanda\AssetManager\Models\Asset;
-// use Innopanda\AssetManager\Models\AssetTag;
 
 class BrowserSidebar extends Component
 {
     public ?int $selectedFolder = null;
-
-    public array $selectedTags = [];
-
     public string $type = 'all';
-
-
     public function selectFolder(?int $folderId): void
     {
         $this->selectedFolder = $folderId;
@@ -26,30 +19,7 @@ class BrowserSidebar extends Component
         );
     }
 
-
-    public function toggleTag(int $tagId): void
-    {
-        if (in_array($tagId, $this->selectedTags)) {
-
-            $this->selectedTags = array_values(
-                array_diff($this->selectedTags, [$tagId])
-            );
-
-        } else {
-
-            $this->selectedTags[] = $tagId;
-
-        }
-
-
-        $this->dispatch(
-            'tags-selected',
-            tags: $this->selectedTags
-        );
-    }
-
-
-    public function filterType(string $type): void
+   public function filterType(string $type): void
     {
         $this->type = $type;
 
@@ -99,8 +69,6 @@ class BrowserSidebar extends Component
                     ->orderBy('name')
                     ->get(),
 
-
-                'tags' => [],
 
 
                 // Footer Storage Data

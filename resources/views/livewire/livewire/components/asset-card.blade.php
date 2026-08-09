@@ -67,20 +67,7 @@
 
         </button>
 
-        <!-- Hover Overlay -->
-
-        <div
-            class="absolute inset-0 hidden items-center justify-center bg-black/40 group-hover:flex">
-
-            <button
-                wire:click.stop="preview"
-                class="rounded-lg bg-white px-4 py-2 text-sm font-medium">
-
-                Preview
-
-            </button>
-
-        </div>
+        <!-- Hover Overlay Removed -->
 
     </div>
 

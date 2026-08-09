@@ -1,35 +1,38 @@
 {
-    "name": "innopanda/laravel-asset-manager",
-    "description": "Professional reusable asset manager for Laravel",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Manoj Agrawal",
-            "email": "[EMAIL_ADDRESS]"
-        }
-    ],
-    "require": {
-        "php": "^8.2|^8.3",
-        "illuminate/support": "^11.0|^12.0|^13.0",
-        "spatie/laravel-medialibrary": "^11.0|^12.0"
+  "name": "innopanda/laravel-asset-manager",
+  "description": "Professional reusable media manager for Laravel",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Manoj Agrawal",
+      "email": "[EMAIL_ADDRESS]"
+    }
+  ],
+  "require": {
+    "php": "^8.2|^8.3",
+    "filament/filament": "^5.0",
+    "laravel/framework": "^12.0|^13.0",
+    "livewire/livewire": "^4.0",
+    "illuminate/support": "^11.0|^12.0|^13.0",
+    "spatie/laravel-medialibrary": "^11.0|^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Innopanda\\AssetManager\\": "src/",
+      "Innopanda\\AssetManager\\Database\\Seeders\\": "database/seeders/"
     },
-    "autoload": {
-        "psr-4": {
-            "Innopanda\\AssetManager\\": "src/",
-            "Innopanda\\AssetManager\\Database\\Seeders\\": "database/seeders/"
-        },
-        "files": [
-            "src/Support/AssetFunctions.php"
-        ]
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Innopanda\\AssetManager\\AssetManagerServiceProvider"
-            ]
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "files": [
+      "src/Support/AssetFunctions.php"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Innopanda\\AssetManager\\AssetManagerServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

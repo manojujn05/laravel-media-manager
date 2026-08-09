@@ -7,7 +7,6 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Innopanda\AssetManager\Models\Asset;
 use Innopanda\AssetManager\Models\Folder;
-use Innopanda\AssetManager\Models\Tag;
 use Innopanda\AssetManager\DTOs\UploadMediaData;
 use Innopanda\AssetManager\Actions\UploadMediaAction;
 use Illuminate\Support\Facades\Log;
@@ -38,8 +37,6 @@ class MediaBrowser extends Component
 
     public bool $favorites = false;
 
-    public string|int|null $tag = null; // Phase 9: Active Tag Filter
-
     public int $perPage = 24;
 
     public array $selected = [];
@@ -48,17 +45,7 @@ class MediaBrowser extends Component
 
     public $file = null;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Phase 9: Tag Management Modal State
-    |--------------------------------------------------------------------------
-    */
-
-    public bool $showTagModal = false;
-
-    public string $newTagName = '';
-
-    public string $newTagColor = '#6366f1'; // Default Indigo Color
+    public string $pickerId = '';
 
     /*
     |--------------------------------------------------------------------------
@@ -73,7 +60,6 @@ class MediaBrowser extends Component
         'folder'    => ['except' => null],
         'type'      => ['except' => ''],
         'favorites' => ['except' => false],
-        'tag'       => ['except' => null], // Phase 9 URL Support
     ];
 
     /*
@@ -89,79 +75,11 @@ class MediaBrowser extends Component
         $this->resetPage();
     }
 
-    /**
-     * Phase 9: Select or toggle active Tag filter
-     */
-    public function selectTag(string|int|null $tagId = null): void
-    {
-        $this->tag = ($this->tag == $tagId) ? null : $tagId;
-        $this->resetPage();
-    }
 
-    /**
-     * Phase 9: Toggle tag attachment to specific Asset
-     */
-    public function toggleAssetTag(string|int $assetId, string|int $tagId): void
-    {
-        $asset = Asset::find($assetId);
-        if ($asset) {
-            $asset->tags()->toggle($tagId);
-            $this->dispatch('notify', 'Asset tag updated!');
-        }
-    }
-
-    /**
-     * Phase 9: Open Tag Creation Modal
-     */
-    public function openTagModal(): void
-    {
-        $this->reset(['newTagName', 'newTagColor']);
-        $this->newTagColor = '#6366f1';
-        $this->showTagModal = true;
-    }
-
-    /**
-     * Phase 9: Store a new Tag
-     */
-    public function createTag(): void
-    {
-        $this->validate([
-            'newTagName' => 'required|string|max:50|unique:asset_tags,name',
-            'newTagColor' => 'required|string|max:7',
-        ]);
-
-        Tag::create([
-            'name' => trim($this->newTagName),
-            'color' => $this->newTagColor,
-            'slug' => Str::slug($this->newTagName),
-        ]);
-
-        $this->reset(['newTagName', 'newTagColor', 'showTagModal']);
-        $this->dispatch('notify', 'Tag created successfully!');
-    }
-
-    /**
-     * Phase 9: Delete a Tag
-     */
-    public function deleteTag(string|int $tagId): void
-    {
-        $tagModel = Tag::find($tagId);
-
-        if ($tagModel) {
-            $tagModel->assets()->detach();
-            $tagModel->delete();
-
-            if ($this->tag == $tagId) {
-                $this->tag = null;
-            }
-
-            $this->dispatch('notify', 'Tag deleted successfully!');
-        }
-    }
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'type', 'favorites', 'folder', 'tag']);
+        $this->reset(['search', 'type', 'favorites', 'folder']);
         $this->sort = 'latest';
         $this->resetPage();
     }
@@ -183,7 +101,7 @@ class MediaBrowser extends Component
         ]);
 
         $dto = new UploadMediaData(
-            folder_id: $this->folder ? (string)$this->folder : null,
+            folder_id: $this->folder ? (int)$this->folder : null,
             disk: config('asset-manager.disk', 'public'),
             collection: 'original'
         );
@@ -220,10 +138,7 @@ class MediaBrowser extends Component
         $this->resetPage();
     }
 
-    public function updatingTag()
-    {
-        $this->resetPage();
-    }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -259,6 +174,8 @@ class MediaBrowser extends Component
     |--------------------------------------------------------------------------
     */
 
+    public bool $showBulkDeleteModal = false;
+
     public function toggleSelection(string|int $assetId): void
     {
         if (in_array($assetId, $this->selected)) {
@@ -274,6 +191,8 @@ class MediaBrowser extends Component
     public function clearSelection(): void
     {
         $this->selected = [];
+        $this->selectedAssets = [];
+        $this->selectAll = false;
     }
 
     /*
@@ -287,6 +206,71 @@ class MediaBrowser extends Component
         $this->previewAsset = $assetId;
     }
 
+    public function selectAsset(string|int $assetId): void
+    {
+        $asset = Asset::find($assetId);
+
+        if (! $asset) {
+            return;
+        }
+
+        $url = $asset->getFirstMediaUrl('original')
+            ?: $asset->getFirstMediaUrl('assets')
+            ?: (
+                str_starts_with($asset->path, 'http')
+                    ? $asset->path
+                    : \Illuminate\Support\Facades\Storage::disk(
+                        $asset->disk ?? 'public'
+                    )->url($asset->path)
+            );
+
+        $payload = json_encode([
+            'pickerId' => $this->pickerId,
+            'id' => (int) $asset->id,
+            'url' => $url,
+        ]);
+
+        $this->js("
+            window.dispatchEvent(new CustomEvent('asset-manager:image-selected', {
+                detail: {$payload}
+            }));
+        ");
+    }
+
+    public function deleteAsset(string|int $assetId): void
+    {
+        $asset = Asset::find($assetId);
+        
+        if ($asset) {
+            try {
+                $asset->delete();
+
+                if ($this->previewAsset == $assetId) {
+                    $this->previewAsset = null;
+                }
+
+                if (in_array($assetId, $this->selected)) {
+                    $this->selected = array_values(array_diff($this->selected, [$assetId]));
+                }
+
+                $this->dispatch('notify', 'Asset deleted successfully!', 'success');
+            } catch (\Exception $e) {
+                Log::error('Failed to delete asset: ' . $e->getMessage());
+                $this->dispatch('notify', 'Failed to delete asset.', 'error');
+            }
+        }
+    }
+
+    public function copyAssetUrl(string|int $assetId): void
+    {
+        $asset = Asset::find($assetId);
+        if ($asset) {
+            $url = $asset->getFirstMediaUrl('assets') ?: (str_starts_with($asset->path, 'http') ? $asset->path : \Illuminate\Support\Facades\Storage::disk($asset->disk ?? 'public')->url($asset->path));
+            $this->dispatch('copy-to-clipboard', url: $url);
+            $this->dispatch('notify', 'URL copied successfully!', 'success');
+        }
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Query
@@ -295,7 +279,7 @@ class MediaBrowser extends Component
 
     public function getAssetsProperty()
     {
-        $query = Asset::query()->with('tags');
+        $query = Asset::query();
 
         if ($this->search !== '') {
             $query->where(function ($q) {
@@ -322,12 +306,7 @@ class MediaBrowser extends Component
             $query->where('mime_type', 'like', $this->type . '%');
         }
 
-        // Phase 9: Filter assets by dynamic Tag ID
-        if ($this->tag) {
-            $query->whereHas('tags', function ($q) {
-                $q->where('asset_tags.id', $this->tag);
-            });
-        }
+
 
         switch ($this->sort) {
             case 'oldest':
@@ -361,10 +340,7 @@ class MediaBrowser extends Component
         return $this->folder ? Folder::find($this->folder) : null;
     }
 
-    public function getAllTagsProperty()
-    {
-        return Tag::withCount('assets')->get();
-    }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -380,7 +356,6 @@ class MediaBrowser extends Component
                 'assets'        => $this->assets,
                 'folders'       => $this->folders,
                 'currentFolder' => $this->currentFolder,
-                'allTags'       => $this->allTags,
             ]
         );
     }

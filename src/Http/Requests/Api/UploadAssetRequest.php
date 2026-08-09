@@ -26,8 +26,6 @@ class UploadAssetRequest extends FormRequest
             'folder_id' => 'nullable|exists:asset_folders,id',
             'title' => 'nullable|string|max:255',
             'alt_text' => 'nullable|string|max:255',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:asset_tags,id',
         ];
     }
 }

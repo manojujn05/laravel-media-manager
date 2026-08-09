@@ -3,33 +3,9 @@
 @endphp
 
 <div>
-    {{-- Bulk Action Bar --}}
-    @if(!empty($selectedAssets) && count($selectedAssets) > 0)
-        <div class="sticky top-4 z-30 mb-6 flex items-center justify-between rounded-xl border border-gray-200 bg-white/95 px-5 py-3 shadow-xl backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/95">
-            <div class="flex items-center gap-3 font-medium text-gray-800 dark:text-gray-200">
-                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-sm">
-                    {{ count($selectedAssets) }}
-                </span>
-                <span class="text-sm font-semibold">Asset(s) Selected</span>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button wire:click="bulkDownloadZip" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
-                    📥 Download
-                </button>
-                <button wire:click="bulkDelete" wire:confirm="Are you sure you want to delete selected assets?" class="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition">
-                    🗑️ Delete
-                </button>
-                <button wire:click="clearSelection" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    @endif
-
     @if(isset($assets) && $assets->count())
-        {{-- Grid columns adjusted: fewer columns per row so cards look wider and more prominent --}}
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {{-- Grid columns adjusted for wider cards --}}
+        <div class="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             @foreach($assets as $asset)
                 @php
                     $disk = $asset->disk ?? 'public';
@@ -50,7 +26,7 @@
                 <div wire:key="asset-{{ $asset->id }}" class="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm transition-all duration-300 hover:border-indigo-500/50 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
                     
                     {{-- Asset Preview Container --}}
-                    <div wire:click="preview({{ $asset->id }})" class="relative h-56 w-full cursor-pointer overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100/60 dark:from-gray-900/40 dark:to-gray-900/80 p-4">
+                    <div wire:click="preview({{ $asset->id }})" class="relative h-28 w-full cursor-pointer overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100/60 dark:from-gray-900/40 dark:to-gray-900/80 p-2">
                         
                         <div class="absolute inset-0 opacity-30 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:14px_14px] dark:bg-[radial-gradient(#475569_1px,transparent_1px)]"></div>
 
@@ -65,10 +41,10 @@
                             </div>
                         @else
                             <div class="relative flex h-full flex-col items-center justify-center text-center">
-                                <svg class="h-16 w-16 text-indigo-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-12 w-12 text-indigo-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                 </svg>
-                                <span class="mt-2 rounded-md bg-indigo-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">{{ $asset->extension ?? 'FILE' }}</span>
+                                <span class="mt-2 rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">{{ $asset->extension ?? 'FILE' }}</span>
                             </div>
                         @endif
 
@@ -81,70 +57,33 @@
                                 class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shadow-sm transition"
                             >
                         </div>
-
-                        {{-- Favorite Star Top Right --}}
-                        <button 
-                            type="button"
-                            wire:click.stop="toggleFavorite({{ $asset->id }})"
-                            class="absolute right-3.5 top-3.5 z-10 rounded-xl bg-white/90 p-2 text-xs shadow-sm backdrop-blur hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 transition"
-                            title="Toggle Favorite"
-                        >
-                            {{ $asset->is_favorite ? '⭐' : '☆' }}
-                        </button>
                     </div>
 
-                    {{-- Card Footer Info & SaaS Buttons --}}
-                    <div class="flex flex-col justify-between flex-grow p-4 bg-white dark:bg-gray-800">
-                        <div>
-                            <div class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3" title="{{ $asset->title }}">
-                                {{ $asset->title ?? basename($asset->path) }}
-                            </div>
+                    {{-- Card Footer Info --}}
+                    <div class="flex flex-col justify-between flex-grow p-3 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700/60">
+                        <div 
+                            class="text-xs font-medium truncate text-gray-900 dark:text-gray-100" 
+                            title="{{ basename($asset->path) }}"
+                        >
+                            {{ basename($asset->path) }}
                         </div>
 
-                        {{-- Professional Action Buttons --}}
-                        <div class="grid grid-cols-2 gap-2 mb-3.5">
-                            <button 
-                                type="button"
-                                wire:click.stop="preview({{ $asset->id }})"
-                                class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition"
-                            >
-                                👁 Preview
-                            </button>
-                            
-                            <a 
-                                href="{{ $assetUrl }}" 
-                                download
-                                onclick="event.stopPropagation()"
-                                class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition text-center"
-                            >
-                                ⬇ Download
-                            </a>
+                        <!-- <div class="flex items-center justify-between mt-1.5 text-[10px] text-gray-500 dark:text-gray-400">
+                            <span class="font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $asset->extension ?? 'IMG' }}</span>
+                            <span class="font-medium flex items-center gap-1">
+                                <span class="h-1 w-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                                {{ $asset->size ? number_format($asset->size / 1024, 1) . ' KB' : '' }}
+                                <span class="font-medium">{{ $asset->created_at?->diffForHumans(null, true) }}</span>
+                            </span>
+                        </div> -->
 
-                            <button 
-                                type="button"
-                                x-data
-                                x-on:click.stop="navigator.clipboard.writeText('{{ $assetUrl }}'); alert('URL Copied successfully!')"
-                                class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition"
-                            >
-                                📋 Copy URL
-                            </button>
-
-                            <button 
-                                type="button"
-                                wire:click.stop="deleteAsset({{ $asset->id }})"
-                                wire:confirm="Are you sure you want to delete this asset?"
-                                class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-100 bg-rose-50/60 px-3 py-2 text-xs font-medium text-rose-600 shadow-sm hover:bg-rose-100 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition"
-                            >
-                                🗑️ Delete
-                            </button>
-                        </div>
-
-                        {{-- Metadata Bottom Info --}}
-                        <div class="flex items-center justify-between border-t border-gray-100 pt-3 text-[11px] text-gray-500 dark:border-gray-700/60 dark:text-gray-400">
-                            <span class="rounded bg-gray-100 px-1.5 py-0.5 font-bold uppercase tracking-wider text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $asset->extension ?? 'IMG' }}</span>
-                            <span class="font-medium">{{ $asset->size ? number_format($asset->size / 1024, 1) . ' KB' : '' }}</span>
-                            <span class="font-medium">{{ $asset->created_at?->diffForHumans(null, true) }}</span>
-                        </div>
+                        <button
+                            type="button"
+                            wire:click="selectAsset({{ $asset->id }})"
+                            class="mt-2 w-full rounded-lg bg-indigo-600 px-2 py-1 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
+                        >
+                            Select
+                        </button>
                     </div>
 
                 </div>

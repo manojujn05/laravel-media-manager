@@ -12,13 +12,13 @@ use Innopanda\AssetManager\Livewire\BrowserPreview;
 use Innopanda\AssetManager\Livewire\BrowserUploader;
 use Innopanda\AssetManager\Livewire\BrowserSidebar;
 use Innopanda\AssetManager\Livewire\MediaBrowser;
+use Innopanda\AssetManager\Livewire\MediaPicker;
 use Innopanda\AssetManager\Livewire\AssetPickerModal;
 use Innopanda\AssetManager\Livewire\AssetUploader;
 use Innopanda\AssetManager\Livewire\AssetPicker;
 use Innopanda\AssetManager\Livewire\FolderNode;
 use Innopanda\AssetManager\Livewire\CreateFolder;
 use Innopanda\AssetManager\Livewire\FolderTree;
-use Innopanda\AssetManager\Livewire\VersionHistoryModal;
 use Innopanda\AssetManager\Livewire\ReplaceFileDrawer;
 
 class AssetManagerServiceProvider extends ServiceProvider
@@ -81,6 +81,7 @@ class AssetManagerServiceProvider extends ServiceProvider
      */
     protected function registerLivewireComponents(): void
     {
+        Livewire::component('asset-manager.media-picker', MediaPicker::class);
         Livewire::component('asset-manager.media-browser', MediaBrowser::class);
         Livewire::component('asset-manager.browser-toolbar', BrowserToolbar::class);
         Livewire::component('asset-manager.browser-grid', BrowserGrid::class);
@@ -94,7 +95,6 @@ class AssetManagerServiceProvider extends ServiceProvider
         Livewire::component('asset-manager.asset-picker-modal', AssetPickerModal::class);
         Livewire::component('asset-manager.asset-uploader', AssetUploader::class);
         Livewire::component('asset-manager.folder-tree', FolderTree::class);
-        Livewire::component('asset-manager.version-history-modal', VersionHistoryModal::class);
         Livewire::component('asset-manager.replace-file-drawer', ReplaceFileDrawer::class);
     }
 }
