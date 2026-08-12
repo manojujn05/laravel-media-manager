@@ -298,8 +298,6 @@ This makes the Asset Manager suitable for:
 * Profile images
 * Product images
 * Gallery images
-* Recipe images
-* Workout images
 * Documents
 * Other application media
 
@@ -332,18 +330,6 @@ Folders can be nested and assets can be moved between folders.
 Existing files can be replaced through the asset management interface.
 
 The replacement functionality is designed to preserve the asset's existing relationships and associations while updating the underlying media.
-
----
-
-# 🕒 Version History
-
-Asset versions can be tracked through the version history functionality.
-
-This allows applications to:
-
-* View previous versions
-* Track changes
-* Restore older versions
 
 ---
 
