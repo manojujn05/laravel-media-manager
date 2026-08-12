@@ -7,7 +7,6 @@ use Livewire\Drawer\Utils;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Blade;
 use Livewire\Mechanisms\Mechanism;
-use Livewire\Mechanisms\HandleRequests\EndpointResolver;
 use function Livewire\on;
 
 class FrontendAssets extends Mechanism
@@ -23,12 +22,11 @@ class FrontendAssets extends Mechanism
     {
         app($this::class)->setScriptRoute(function ($handle) {
             return config('app.debug')
-                ? Route::get(EndpointResolver::scriptPath(minified: false), $handle)
-                : Route::get(EndpointResolver::scriptPath(minified: true), $handle);
+                ? Route::get('/livewire/livewire.js', $handle)
+                : Route::get('/livewire/livewire.min.js', $handle);
         });
 
-        Route::get(EndpointResolver::mapPath(csp: false), [static::class, 'maps']);
-        Route::get(EndpointResolver::mapPath(csp: true), [static::class, 'cspMaps']);
+        Route::get('/livewire/livewire.min.js.map', [static::class, 'maps']);
 
         Blade::directive('livewireScripts', [static::class, 'livewireScripts']);
         Blade::directive('livewireScriptConfig', [static::class, 'livewireScriptConfig']);
@@ -58,7 +56,7 @@ class FrontendAssets extends Mechanism
 
     function setScriptRoute($callback)
     {
-        $route = $callback([self::class, 'returnJavaScriptAsFile'], EndpointResolver::scriptPath());
+        $route = $callback([self::class, 'returnJavaScriptAsFile']);
 
         $this->javaScriptRoute = $route;
     }
@@ -80,29 +78,16 @@ class FrontendAssets extends Mechanism
 
     public function returnJavaScriptAsFile()
     {
-        $isCsp = app('livewire')->isCspSafe();
-
-        if (config('app.debug')) {
-            $file = $isCsp ? 'livewire.csp.js' : 'livewire.js';
-        } else {
-            $file = $isCsp ? 'livewire.csp.min.js' : 'livewire.min.js';
-        }
-
-        return Utils::pretendResponseIsFile(__DIR__.'/../../../dist/'.$file);
+        return Utils::pretendResponseIsFile(
+            config('app.debug')
+                ? __DIR__.'/../../../dist/livewire.js'
+                : __DIR__.'/../../../dist/livewire.min.js'
+        );
     }
 
     public function maps()
     {
-        $file = app('livewire')->isCspSafe()
-            ? 'livewire.csp.min.js.map'
-            : 'livewire.min.js.map';
-
-        return Utils::pretendResponseIsFile(__DIR__.'/../../../dist/'.$file);
-    }
-
-    public function cspMaps()
-    {
-        return Utils::pretendResponseIsFile(__DIR__.'/../../../dist/livewire.csp.min.js.map');
+        return Utils::pretendResponseIsFile(__DIR__.'/../../../dist/livewire.min.js.map');
     }
 
     /**
@@ -110,8 +95,6 @@ class FrontendAssets extends Mechanism
      */
     public static function styles($options = [])
     {
-        if (app(static::class)->hasRenderedStyles) return '';
-
         app(static::class)->hasRenderedStyles = true;
 
         $nonce = static::nonce($options);
@@ -124,7 +107,7 @@ class FrontendAssets extends Mechanism
         $html = <<<HTML
         <!-- Livewire Styles -->
         <style {$nonce}>
-            [wire\:loading][wire\:loading], [wire\:loading\.delay][wire\:loading\.delay], [wire\:loading\.list-item][wire\:loading\.list-item], [wire\:loading\.inline-block][wire\:loading\.inline-block], [wire\:loading\.inline][wire\:loading\.inline], [wire\:loading\.block][wire\:loading\.block], [wire\:loading\.flex][wire\:loading\.flex], [wire\:loading\.table][wire\:loading\.table], [wire\:loading\.grid][wire\:loading\.grid], [wire\:loading\.inline-flex][wire\:loading\.inline-flex] {
+            [wire\:loading][wire\:loading], [wire\:loading\.delay][wire\:loading\.delay], [wire\:loading\.inline-block][wire\:loading\.inline-block], [wire\:loading\.inline][wire\:loading\.inline], [wire\:loading\.block][wire\:loading\.block], [wire\:loading\.flex][wire\:loading\.flex], [wire\:loading\.table][wire\:loading\.table], [wire\:loading\.grid][wire\:loading\.grid], [wire\:loading\.inline-flex][wire\:loading\.inline-flex] {
                 display: none;
             }
 
@@ -166,8 +149,6 @@ class FrontendAssets extends Mechanism
      */
     public static function scripts($options = [])
     {
-        if (app(static::class)->hasRenderedScripts) return '';
-
         app(static::class)->hasRenderedScripts = true;
 
         $debug = config('app.debug');
@@ -185,7 +166,7 @@ class FrontendAssets extends Mechanism
     public static function js($options)
     {
         // Use the default endpoint...
-        $url = url(app(static::class)->javaScriptRoute->uri);
+        $url = app(static::class)->javaScriptRoute->uri;
 
         // Use the configured one...
         $url = config('livewire.asset_url') ?: $url;
@@ -198,17 +179,13 @@ class FrontendAssets extends Mechanism
 
         $url = rtrim($url, '/');
 
-        // Ensure relative URLs start with "/", but don't touch URLs with protocol schemes (e.g. "php://")...
-        $url = (string) str($url)->when(
-            ! str_contains($url, '://'),
-            fn ($url) => $url->start('/')
-        );
+        $url = (string) str($url)->when(! str($url)->isUrl(), fn($url) => $url->start('/'));
 
         // Add the build manifest hash to it...
         $manifestPath = __DIR__.'/../../../dist/manifest.json';
         $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
         $versionHash = $manifest['/livewire.js'] ?? 'dev';
-        $url = $url . (parse_url($url, PHP_URL_QUERY) ? '&' : '?') . "id={$versionHash}";
+        $url = "{$url}?id={$versionHash}";
 
         $token = app()->has('session.store') ? csrf_token() : '';
 
@@ -220,16 +197,14 @@ class FrontendAssets extends Mechanism
 
         $progressBar = config('livewire.navigate.show_progress_bar', true) ? '' : 'data-no-progress-bar';
 
-        $moduleUrl = url(app('livewire')->getUriPrefix());
-
-        $updateUri = url(app('livewire')->getUpdateUri());
+        $updateUri = app('livewire')->getUpdateUri();
 
         $extraAttributes = Utils::stringifyHtmlAttributes(
             app(static::class)->scriptTagAttributes,
         );
 
         return <<<HTML
-        {$assetWarning}<script src="{$url}" {$nonce} {$progressBar} data-csrf="{$token}" data-module-url="{$moduleUrl}" data-update-uri="{$updateUri}" {$extraAttributes}></script>
+        {$assetWarning}<script src="{$url}" {$nonce} {$progressBar} data-csrf="{$token}" data-update-uri="{$updateUri}" {$extraAttributes}></script>
         HTML;
     }
 
@@ -243,10 +218,9 @@ class FrontendAssets extends Mechanism
 
         $attributes = json_encode([
             'csrf' => app()->has('session.store') ? csrf_token() : '',
-            'uri' => url(app('livewire')->getUpdateUri()),
-            'moduleUrl' => url(app('livewire')->getUriPrefix()),
+            'uri' => app('livewire')->getUpdateUri(),
             'progressBar' => $progressBar,
-            'nonce' => $options['nonce'] ?? Vite::cspNonce() ?? '',
+            'nonce' => isset($options['nonce']) ? $options['nonce'] : '',
         ]);
 
         return <<<HTML
@@ -264,35 +238,24 @@ class FrontendAssets extends Mechanism
         }
 
         $publishedManifest = json_decode(file_get_contents(public_path('vendor/livewire/manifest.json')), true);
-        $version = $publishedManifest['/livewire.js'];
+        $versionedFileName = $publishedManifest['/livewire.js'];
 
-        $isCsp = app('livewire')->isCspSafe();
+        $fileName = config('app.debug') ? '/livewire.js' : '/livewire.min.js';
 
-        if (config('app.debug')) {
-            $fileName = $isCsp ? '/livewire.csp.js' : '/livewire.js';
-        } else {
-            $fileName = $isCsp ? '/livewire.csp.min.js' : '/livewire.min.js';
-        }
+        $versionedFileName = "{$fileName}?id={$versionedFileName}";
 
-        $versionedFileName = "{$fileName}?id={$version}";
-
-        $configuredUrl = config('livewire.asset_url');
-        $versionedConfiguredUrl = $configuredUrl
-            ? $configuredUrl . (parse_url($configuredUrl, PHP_URL_QUERY) ? '&' : '?') . "id={$version}"
-            : null;
-
-        $assetUrl = $versionedConfiguredUrl
+        $assertUrl = config('livewire.asset_url')
             ?? (app('livewire')->isRunningServerless()
                 ? rtrim(config('app.asset_url'), '/')."/vendor/livewire$versionedFileName"
                 : url("vendor/livewire{$versionedFileName}")
             );
 
-        $url = $assetUrl;
+        $url = $assertUrl;
 
         if ($manifest !== $publishedManifest) {
             $assetWarning = <<<HTML
             <script {$nonce}>
-                console.warn('Livewire: The published Livewire assets are out of date\\n See: https://livewire.laravel.com/docs/installation#publishing-livewires-assets-to-public-directory')
+                console.warn('Livewire: The published Livewire assets are out of date\\n See: https://livewire.laravel.com/docs/installation#publishing-livewires-frontend-assets')
             </script>\n
             HTML;
         }

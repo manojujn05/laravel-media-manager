@@ -2,6 +2,8 @@
 
 return [
 
+    'version' => '1.0.0',
+
     'disk' => env('ASSET_MANAGER_DISK', 'public'),
 
     'max_upload_size' => 10240,
@@ -14,15 +16,18 @@ return [
         'application/pdf',
     ],
 
-   'thumbnails' => [
+    'thumbnails' => [
+
         'small' => [
             'width' => 150,
             'height' => 150,
         ],
+
         'medium' => [
             'width' => 400,
             'height' => 400,
         ],
+
         'large' => [
             'width' => 800,
             'height' => 800,

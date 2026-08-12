@@ -2,14 +2,13 @@
 
 namespace Livewire\Features\SupportModels;
 
-use Livewire\Mechanisms\HandleComponents\Synthesizers\Synth;
-use Livewire\Mechanisms\HandleComponents\ComponentContext;
-use Illuminate\Queue\SerializesAndRestoresModelIdentifiers;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Queue\SerializesAndRestoresModelIdentifiers;
+use Livewire\Mechanisms\HandleComponents\Synthesizers\Synth;
 
 class EloquentCollectionSynth extends Synth {
-    use SerializesAndRestoresModelIdentifiers, IsLazy;
+    use SerializesAndRestoresModelIdentifiers;
 
     public static $key = 'elcln';
 
@@ -20,27 +19,17 @@ class EloquentCollectionSynth extends Synth {
 
     function dehydrate(EloquentCollection $target, $dehydrateChild)
     {
-        if ($this->isLazy($target)) {
-            $meta = $this->getLazyMeta($target);
-
-            return [
-                null,
-                $meta,
-            ];
-        }
-
         $class = $target::class;
         $modelClass = $target->getQueueableClass();
 
-        if ($modelClass) {
-            $morphMap = Relation::morphMap();
-
-            $modelAlias = in_array($modelClass, $morphMap)
-                ? array_search($modelClass, $morphMap, true)
-                : $modelClass;
-        } else {
-            $modelAlias = null;
-        }
+        /**
+         * `getQueueableClass` above checks all models are the same and
+         * then returns the class. We then instantiate a model object
+         * so we can call `getMorphClass()` on it.
+         *
+         * If no alias is found, this just returns the class name
+         */
+        $modelAlias = $modelClass ? (new $modelClass)->getMorphClass() : null;
 
         $meta = [];
 
@@ -63,7 +52,7 @@ class EloquentCollectionSynth extends Synth {
         $modelClass = $meta['modelClass'];
 
         // If no alias found, this returns `null`
-        $modelAlias = $modelClass ? Relation::getMorphedModel($modelClass) : null;
+        $modelAlias = Relation::getMorphedModel($modelClass);
 
         if (! is_null($modelAlias)) {
             $modelClass = $modelAlias;
@@ -75,20 +64,18 @@ class EloquentCollectionSynth extends Synth {
             return new $class();
         }
 
-        return $this->makeLazyProxy($class, $meta, function () use ($modelClass, $keys, $meta) {
-            // We are using Laravel's method here for restoring the collection, which ensures
-            // that all models in the collection are restored in one query, preventing n+1
-            // issues and also only restores models that exist.
-            $collection = (new $modelClass)->newQueryForRestoration($keys)->useWritePdo()->get();
+        // We are using Laravel's method here for restoring the collection, which ensures
+        // that all models in the collection are restored in one query, preventing n+1
+        // issues and also only restores models that exist.
+        $collection = (new $modelClass)->newQueryForRestoration($keys)->useWritePdo()->get();
 
-            $collection = $collection->keyBy->getKey();
+        $collection = $collection->keyBy->getKey();
 
-            return new $meta['class'](
-                collect($meta['keys'])->map(function ($id) use ($collection) {
-                    return $collection[$id] ?? null;
-                })->filter()
-            );
-        });
+        return new $meta['class'](
+            collect($meta['keys'])->map(function ($id) use ($collection) {
+                return $collection[$id] ?? null;
+            })->filter()
+        );
     }
 
     function get(&$target, $key) {

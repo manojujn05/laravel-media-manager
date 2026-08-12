@@ -79,8 +79,6 @@ interface Laravel
     /**
      * Get Application's base path.
      *
-     * @api
-     *
      * @return string
      */
     public static function applicationBasePath();

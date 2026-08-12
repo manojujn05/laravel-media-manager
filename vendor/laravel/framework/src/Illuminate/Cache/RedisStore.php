@@ -14,7 +14,6 @@ use Illuminate\Support\Str;
 class RedisStore extends TaggableStore implements LockProvider
 {
     use RetrievesMultipleKeys {
-        many as private manyAlias;
         putMany as private putManyAlias;
     }
 
@@ -47,26 +46,18 @@ class RedisStore extends TaggableStore implements LockProvider
     protected $lockConnection;
 
     /**
-     * The classes that should be allowed during unserialization.
-     *
-     * @var array|bool|null
-     */
-    protected $serializableClasses;
-
-    /**
      * Create a new Redis store.
      *
      * @param  \Illuminate\Contracts\Redis\Factory  $redis
      * @param  string  $prefix
      * @param  string  $connection
-     * @param  array|bool|null  $serializableClasses
+     * @return void
      */
-    public function __construct(Redis $redis, $prefix = '', $connection = 'default', $serializableClasses = null)
+    public function __construct(Redis $redis, $prefix = '', $connection = 'default')
     {
         $this->redis = $redis;
         $this->setPrefix($prefix);
         $this->setConnection($connection);
-        $this->serializableClasses = $serializableClasses;
     }
 
     /**
@@ -101,11 +92,6 @@ class RedisStore extends TaggableStore implements LockProvider
         $results = [];
 
         $connection = $this->connection();
-
-        // PredisClusterConnection does not support reading multiple values if the keys hash differently...
-        if ($connection instanceof PredisClusterConnection) {
-            return $this->manyAlias($keys);
-        }
 
         $values = $connection->mget(array_map(function ($key) {
             return $this->prefix.$key;
@@ -155,7 +141,7 @@ class RedisStore extends TaggableStore implements LockProvider
         $serializedValues = [];
 
         foreach ($values as $key => $value) {
-            $serializedValues[$this->prefix.$key] = $this->connectionAwareSerialize($value, $connection);
+            $serializedValues[$this->prefix.$key] = $this->serialize($value);
         }
 
         $connection->multi();
@@ -301,7 +287,7 @@ class RedisStore extends TaggableStore implements LockProvider
     /**
      * Begin executing a new tags operation.
      *
-     * @param  mixed  $names
+     * @param  array|mixed  $names
      * @return \Illuminate\Cache\RedisTaggedCache
      */
     public function tags($names)
@@ -339,16 +325,10 @@ class RedisStore extends TaggableStore implements LockProvider
             $cursor = $defaultCursorValue;
 
             do {
-                $scanResult = $connection->scan(
+                [$cursor, $tagsChunk] = $connection->scan(
                     $cursor,
                     ['match' => $prefix.'tag:*:entries', 'count' => $chunkSize]
                 );
-
-                if (! is_array($scanResult)) {
-                    break;
-                }
-
-                [$cursor, $tagsChunk] = $scanResult;
 
                 if (! is_array($tagsChunk)) {
                     break;
@@ -483,7 +463,7 @@ class RedisStore extends TaggableStore implements LockProvider
      */
     protected function shouldBeStoredWithoutSerialization($value): bool
     {
-        return is_numeric($value) && is_finite($value);
+        return is_numeric($value) && ! in_array($value, [INF, -INF]) && ! is_nan($value);
     }
 
     /**
@@ -494,15 +474,7 @@ class RedisStore extends TaggableStore implements LockProvider
      */
     protected function unserialize($value)
     {
-        if (is_numeric($value)) {
-            return $value;
-        }
-
-        if ($this->serializableClasses !== null) {
-            return unserialize($value, ['allowed_classes' => $this->serializableClasses]);
-        }
-
-        return unserialize($value);
+        return is_numeric($value) ? $value : unserialize($value);
     }
 
     /**

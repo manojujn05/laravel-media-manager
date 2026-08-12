@@ -8,8 +8,7 @@ use function Livewire\invade;
 use Livewire\Features\SupportAttributes\AttributeLevel;
 use Livewire\ComponentHook;
 use Livewire\Exceptions\EventHandlerDoesNotExist;
-use Livewire\Features\SupportAuthorization\BaseAuthorize;
-use Livewire\Features\SupportRenderless\BaseRenderless;
+use Livewire\Mechanisms\HandleComponents\BaseRenderless;
 
 class SupportEvents extends ComponentHook
 {
@@ -26,15 +25,6 @@ class SupportEvents extends ComponentHook
 
             $method = static::getListenerMethodName($this->component, $name);
 
-            // Run any authorization checks on the listener method since
-            // its normal "call" hook doesn't get run when the method
-            // is called as an event listener...
-            $this->component->getAttributes()
-                ->filter(fn ($i) => $i instanceof BaseAuthorize)
-                ->filter(fn ($i) => $i->getName() === $method)
-                ->filter(fn ($i) => $i->getLevel() === AttributeLevel::METHOD)
-                ->each(fn ($i) => $i->call($params));
-
             $returnEarly(
                 wrap($this->component)->$method(...$params)
             );
@@ -43,7 +33,7 @@ class SupportEvents extends ComponentHook
             // is "renderless" as it's normal "call" hook doesn't get run when
             // the method is called as an event listener...
             $isRenderless = $this->component->getAttributes()
-                ->filter(fn ($i) => $i instanceof BaseRenderless)
+                ->filter(fn ($i) => is_subclass_of($i, BaseRenderless::class))
                 ->filter(fn ($i) => $i->getName() === $method)
                 ->filter(fn ($i) => $i->getLevel() === AttributeLevel::METHOD)
                 ->count() > 0;
@@ -54,10 +44,7 @@ class SupportEvents extends ComponentHook
 
     function dehydrate($context)
     {
-        // Don't register listeners until a lazy component has fully mounted...
-        if (store($this->component)->get('isLazyLoadMounting') === true) return;
-
-        if ($context->isMounting() || store($this->component)->get('isLazyLoadHydrating') === true) {
+        if ($context->mounting) {
             $listeners = static::getListenerEventNames($this->component);
 
             $listeners && $context->addEffect('listeners', $listeners);

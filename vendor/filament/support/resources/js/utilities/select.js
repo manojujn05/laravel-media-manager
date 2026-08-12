@@ -639,7 +639,7 @@ export class Select {
             if (renderVersion === this.selectedDisplayVersion) {
                 this.selectedDisplay.replaceChildren(fragment)
                 if (this.isOpen) {
-                    this.deferPositionDropdown()
+                    this.positionDropdown()
                 }
             }
             return
@@ -1573,25 +1573,6 @@ export class Select {
         })
     }
 
-    // Queue a dropdown position update to run after the DOM has painted.
-    // This avoids incorrect measurements right after async render/update cycles
-    // (e.g., after `getSearchResultsUsing()`) where layout isn't stable yet.
-    deferPositionDropdown() {
-        if (!this.isOpen) return
-
-        // Coalesce multiple rapid calls
-        if (this.positioningRequestAnimationFrame) {
-            cancelAnimationFrame(this.positioningRequestAnimationFrame)
-            this.positioningRequestAnimationFrame = null
-        }
-
-        this.positioningRequestAnimationFrame = requestAnimationFrame(() => {
-            this.positionDropdown()
-
-            this.positioningRequestAnimationFrame = null
-        })
-    }
-
     closeDropdown() {
         this.dropdown.style.display = 'none'
         this.selectButton.setAttribute('aria-expanded', 'false')
@@ -1852,7 +1833,7 @@ export class Select {
 
                 // Reevaluate dropdown position after search results are updated
                 if (this.isOpen) {
-                    this.deferPositionDropdown()
+                    this.positionDropdown()
                 }
 
                 // If no results found, show "No results" message
@@ -1896,12 +1877,9 @@ export class Select {
             : this.loadingMessage
         this.dropdown.appendChild(loadingItem)
 
-        // Reposition the dropdown after DOM changes, and announce the message to
-        // screen readers, unless the dropdown is closed, such as when rendering
-        // the initial options on page load
+        // Announce the message to screen readers, unless the dropdown is closed,
+        // such as when rendering the initial options on page load
         if (this.isOpen) {
-            this.deferPositionDropdown()
-
             this.statusRegion.textContent = loadingItem.textContent
         }
     }
@@ -1933,12 +1911,9 @@ export class Select {
         noOptionsItem.textContent = this.noOptionsMessage
         this.dropdown.appendChild(noOptionsItem)
 
-        // Reposition the dropdown after DOM changes, and announce the message to
-        // screen readers, unless the dropdown is closed, such as when rendering
-        // the initial options on page load
+        // Announce the message to screen readers, unless the dropdown is closed,
+        // such as when rendering the initial options on page load
         if (this.isOpen) {
-            this.deferPositionDropdown()
-
             this.statusRegion.textContent = this.noOptionsMessage
         }
     }
@@ -1958,12 +1933,9 @@ export class Select {
         noResultsItem.textContent = this.noSearchResultsMessage
         this.dropdown.appendChild(noResultsItem)
 
-        // Reposition the dropdown after DOM changes, and announce the message to
-        // screen readers, unless the dropdown is closed, such as when rendering
-        // the initial options on page load
+        // Announce the message to screen readers, unless the dropdown is closed,
+        // such as when rendering the initial options on page load
         if (this.isOpen) {
-            this.deferPositionDropdown()
-
             this.statusRegion.textContent = this.noSearchResultsMessage
         }
     }
@@ -1986,9 +1958,6 @@ export class Select {
         } else {
             this.dropdown.appendChild(this.maxItemsMessageElement)
         }
-
-        // Reposition the dropdown after DOM changes
-        this.deferPositionDropdown()
 
         // Announce the message to screen readers
         this.statusRegion.textContent = this.maxItemsMessage
@@ -2126,7 +2095,7 @@ export class Select {
 
             // Reevaluate dropdown position after options are removed
             if (this.isOpen) {
-                this.deferPositionDropdown()
+                this.positionDropdown()
             }
 
             this.maintainFocusInMultipleMode()
@@ -2167,7 +2136,7 @@ export class Select {
 
         // Reevaluate dropdown position after options are added
         if (this.isOpen) {
-            this.deferPositionDropdown()
+            this.positionDropdown()
         }
 
         this.maintainFocusInMultipleMode()

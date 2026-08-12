@@ -37,13 +37,14 @@ class MediaBrowser extends Component
 
     public bool $favorites = false;
 
-    public int $perPage = 24;
+    public int $perPage = 10;
 
     public array $selected = [];
 
     public string|int|null $previewAsset = null;
 
     public $file = null;
+    
 
     public string $pickerId = '';
 

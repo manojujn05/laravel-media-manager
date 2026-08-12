@@ -8,7 +8,9 @@ use Illuminate\Support\Str;
 use {{ namespacedModel }};
 
 /**
- * @extends Factory<User>
+ * @template TModel of \{{ namespacedModel }}
+ *
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<TModel>
  */
 class UserFactory extends Factory
 {
@@ -20,7 +22,7 @@ class UserFactory extends Factory
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<{{ model }}>
+     * @var class-string<TModel>
      */
     protected $model = {{ model }}::class;
 

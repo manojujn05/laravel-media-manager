@@ -3,7 +3,6 @@
 namespace Livewire\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use Livewire\Drawer\Utils;
 use Livewire\Form;
 
@@ -71,8 +70,6 @@ trait InteractsWithProperties
 
                 if (is_object($object)) {
                     $isInitialized = (new \ReflectionProperty($object, (string) $propertyName))->isInitialized($object);
-                } elseif (is_array($object)) {
-                    $isInitialized = Arr::has($freshInstance->{$objectName}, Utils::afterFirstDot((string) $property));
                 } else {
                     $isInitialized = false;
                 }
@@ -90,7 +87,7 @@ trait InteractsWithProperties
         }
     }
 
-    public function resetExcept(...$properties)
+    protected function resetExcept(...$properties)
     {
         if (count($properties) && is_array($properties[0])) {
             $properties = $properties[0];

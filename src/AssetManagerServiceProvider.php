@@ -30,7 +30,7 @@ class AssetManagerServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             ThumbnailService::class,
-            fn () => new ThumbnailService()
+            fn() => new ThumbnailService()
         );
 
         $this->mergeConfigFrom(
@@ -41,6 +41,10 @@ class AssetManagerServiceProvider extends ServiceProvider
         $this->app->singleton('asset-manager', function () {
             return new AssetManager();
         });
+
+        if (class_exists(\Filament\Support\Facades\FilamentAsset::class)) {
+            $this->app->register(AssetManagerFilamentServiceProvider::class);
+        }
     }
 
     /**
@@ -66,8 +70,17 @@ class AssetManagerServiceProvider extends ServiceProvider
                 __DIR__ . '/../config/asset-manager.php' => config_path('asset-manager.php'),
             ], 'asset-manager-config');
 
+            $this->publishes([
+                __DIR__ . '/../database/migrations' => database_path('migrations'),
+            ], 'asset-manager-migrations');
+
+            $this->publishes([
+                __DIR__ . '/../dist' => public_path('vendor/asset-manager'),
+            ], 'asset-manager-assets');
+
             // Safely verify Spatie migration path before publishing
             $spatieMigrationPath = base_path('vendor/spatie/laravel-medialibrary/database/migrations');
+
             if (is_dir($spatieMigrationPath)) {
                 $this->publishes([
                     $spatieMigrationPath => database_path('migrations'),

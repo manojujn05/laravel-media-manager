@@ -24,7 +24,6 @@ class SqsConnector implements ConnectorInterface
             $config['credentials'] = $credentials;
         } elseif (! empty($config['key']) && ! empty($config['secret'])) {
             $config['credentials'] = Arr::only($config, ['key', 'secret']);
-
             if (! empty($config['token'])) {
                 $config['credentials']['token'] = $config['token'];
             }

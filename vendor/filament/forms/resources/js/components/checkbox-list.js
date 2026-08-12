@@ -21,11 +21,12 @@ export default function checkboxListFormComponent({ livewireId }) {
                 this.checkIfAllCheckboxesAreChecked()
             })
 
-            this.unsubscribeLivewireHook = Livewire.interceptMessage(
-                ({ message, onSuccess }) => {
-                    onSuccess(() => {
+            this.unsubscribeLivewireHook = Livewire.hook(
+                'commit',
+                ({ component, commit, succeed, fail, respond }) => {
+                    succeed(({ snapshot, effect }) => {
                         this.$nextTick(() => {
-                            if (message.component.id !== livewireId) {
+                            if (component.id !== livewireId) {
                                 return
                             }
 

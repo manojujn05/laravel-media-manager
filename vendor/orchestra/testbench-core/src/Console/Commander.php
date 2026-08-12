@@ -197,8 +197,6 @@ class Commander
     /**
      * Resolve the application's base path.
      *
-     * @api
-     *
      * @return string
      */
     protected function getApplicationBasePath()

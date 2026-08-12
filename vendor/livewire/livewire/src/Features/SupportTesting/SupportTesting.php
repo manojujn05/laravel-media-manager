@@ -3,6 +3,7 @@
 namespace Livewire\Features\SupportTesting;
 
 use Illuminate\Validation\ValidationException;
+use Livewire\Mechanisms\ComponentRegistry;
 use Livewire\ComponentHook;
 use Livewire\Component;
 
@@ -17,27 +18,6 @@ class SupportTesting extends ComponentHook
         }
 
         static::registerTestingMacros();
-        static::syncCompilerCacheDirectoryDuringParallelTesting();
-    }
-
-    protected static function syncCompilerCacheDirectoryDuringParallelTesting()
-    {
-        // Laravel's `ParallelTesting::setUpTestCase` changes `config('view.compiled')`
-        // to a worker-specific path after the application has booted. If the
-        // `livewire.compiler` singleton was already resolved by that point, its
-        // `CacheManager::$cacheDirectory` retains the original path, which causes
-        // every parallel worker to share the same cache directory and race when
-        // writing islands to it. Mirror what Laravel does for `blade.compiler`
-        // and patch the cache directory whenever the worker's compiled view path
-        // changes. See https://github.com/livewire/livewire/issues/10262.
-        if (! class_exists(\Illuminate\Support\Facades\ParallelTesting::class)) return;
-
-        \Illuminate\Support\Facades\ParallelTesting::setUpTestCase(function () {
-            if (! app()->resolved('livewire.compiler')) return;
-
-            app('livewire.compiler')->cacheManager->cacheDirectory =
-                rtrim(config('view.compiled'), '/\\') . '/livewire';
-        });
     }
 
     function dehydrate($context)
@@ -67,7 +47,7 @@ class SupportTesting extends ComponentHook
         // Usage: $this->assertSeeLivewire('counter');
         \Illuminate\Testing\TestResponse::macro('assertSeeLivewire', function ($component) {
             if (is_subclass_of($component, Component::class)) {
-                $component = app('livewire.factory')->resolveComponentName($component);
+                $component = app(ComponentRegistry::class)->getName($component);
             }
             $escapedComponentName = trim(htmlspecialchars(json_encode(['name' => $component])), '{}');
 
@@ -83,7 +63,7 @@ class SupportTesting extends ComponentHook
         // Usage: $this->assertDontSeeLivewire('counter');
         \Illuminate\Testing\TestResponse::macro('assertDontSeeLivewire', function ($component) {
             if (is_subclass_of($component, Component::class)) {
-                $component = app('livewire.factory')->resolveComponentName($component);
+                $component = app(ComponentRegistry::class)->getName($component);
             }
             $escapedComponentName = trim(htmlspecialchars(json_encode(['name' => $component])), '{}');
 
@@ -99,7 +79,7 @@ class SupportTesting extends ComponentHook
         if (class_exists(\Illuminate\Testing\TestView::class)) {
             \Illuminate\Testing\TestView::macro('assertSeeLivewire', function ($component) {
                 if (is_subclass_of($component, Component::class)) {
-                    $component = app('livewire.factory')->resolveComponentName($component);
+                    $component = app(ComponentRegistry::class)->getName($component);
                 }
                 $escapedComponentName = trim(htmlspecialchars(json_encode(['name' => $component])), '{}');
 
@@ -114,7 +94,7 @@ class SupportTesting extends ComponentHook
 
             \Illuminate\Testing\TestView::macro('assertDontSeeLivewire', function ($component) {
                 if (is_subclass_of($component, Component::class)) {
-                    $component = app('livewire.factory')->resolveComponentName($component);
+                    $component = app(ComponentRegistry::class)->getName($component);
                 }
                 $escapedComponentName = trim(htmlspecialchars(json_encode(['name' => $component])), '{}');
 

@@ -18,6 +18,7 @@ class MemcachedLock extends Lock
      * @param  string  $name
      * @param  int  $seconds
      * @param  string|null  $owner
+     * @return void
      */
     public function __construct($memcached, $name, $seconds, $owner = null)
     {
@@ -36,25 +37,6 @@ class MemcachedLock extends Lock
         return $this->memcached->add(
             $this->name, $this->owner, $this->seconds
         );
-    }
-
-    /**
-     * Attempt to refresh the lock for the given number of seconds.
-     *
-     * @param  int|null  $seconds
-     * @return bool
-     */
-    public function refresh($seconds = null)
-    {
-        $seconds ??= $this->seconds;
-
-        $value = $this->memcached->get($this->name, null, \Memcached::GET_EXTENDED);
-
-        if ($value === false || ($value['value'] ?? null) !== $this->owner) {
-            return false;
-        }
-
-        return $this->memcached->cas($value['cas'], $this->name, $this->owner, $seconds);
     }
 
     /**

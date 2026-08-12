@@ -6,6 +6,38 @@ Updates should follow the [Keep a CHANGELOG](https://keepachangelog.com/) princi
 
 ## [Unreleased][unreleased]
 
+## [2.9.2] - 2026-08-10
+
+This release fixes a regression introduced in 2.9.0 which changed the behavior of `Cursor::match()` for certain regular expression patterns.
+
+### Changed
+- Improved performance of reading single characters from multibyte lines
+- Improved performance of locating the next non-space character on lines without tabs
+- Optimized `Cursor::advanceToNextNonSpaceOrNewline()` to scan the line in place instead of copying everything left in the block on every call
+- Optimized inline link destination parsing to scan the line in place, so its cost follows the length of the destination rather than the length of everything left in the block
+
+### Fixed
+- Fixed a regression introduced in 2.9.0 where `Cursor::match()` treated text before the cursor as part of the match subject (#1145). Patterns were matched against the whole line at an offset, which silently changed the meaning of `\b`, `\B`, `\A`, lookbehinds, a `^` anywhere other than the very start of the pattern, and a leading `^` combined with the `m` modifier. `match()` once again matches against the remainder, exactly as it did in 2.8; the core parsers keep the optimized in-place matching via a new internal method with PCRE's native offset semantics, anchoring their patterns at the cursor with `\G`
+- Fixed heading permalinks rendered with `aria-hidden="true"` remaining in the keyboard tab order; they are now also given `tabindex="-1"`, as a focusable element removed from the accessibility tree has no accessible name to announce when focused (WCAG 4.1.2)
+- Fixed cloning a node breaking the link from the original node's children back to their parent, silently corrupting the document that node belonged to; detaching or inserting around those children afterwards could drop nodes from the tree
+- Fixed cloned nodes sharing their `data` with the node they were cloned from, so that setting an attribute on either one also set it on the other
+
+## [2.9.1] - 2026-08-09
+
+This is a **security release** to address multiple denial of service vulnerabilities and one cross-site scripting (XSS) vulnerability.
+
+### Changed
+- Shortcut and collapsed reference links (`[label]` and `[label][]`) now apply the spec's 999-character link label limit when resolving the label, matching the limit already enforced when parsing reference definitions and when resolving the `[text][label]` form. A label longer than 999 characters which collapsed to a shorter, defined label once whitespace was normalized will no longer resolve; this matches cmark's behavior.
+
+### Fixed
+- Fixed attribute names prefixed with a form feed (such as `{<FF>onclick="..."}`) bypassing both the `on*` event handler filter and the `allow_unsafe_links` protection, as browsers treat that byte as whitespace and parse the name as a genuine `onclick` or `href` (GHSA-f8fg-pg57-v4j8)
+- Fixed catastrophic backtracking in the fenced code block start pattern, causing a single line of backticks to be scanned in quadratic time, which could be abused to cause a denial of service (GHSA-j8pm-gj4c-rq4x)
+- Fixed shortcut reference link lookups normalizing arbitrarily long labels once a single reference definition is present, causing nested brackets to be resolved in quadratic time, which could be abused to cause a denial of service (GHSA-j8pm-gj4c-rq4x)
+- Fixed delimiter processors keying the opener-search cache on the raw closer run length, leaving the cache key space unbounded and causing emphasis, strikethrough, and highlight runs to be processed in super-linear time, which could be abused to cause a denial of service (GHSA-j8pm-gj4c-rq4x)
+- Fixed the `SmartPunctExtension` recopying the whole preceding text node when replacing each unpaired quote, causing documents with many apostrophes to be processed in quadratic time, which could be abused to cause a denial of service (GHSA-jjv6-8j6v-6j52)
+- Fixed the `AttributesExtension` scanning the remaining siblings of every block-level attribute node, causing long runs of adjacent attribute blocks to be resolved in quadratic time, which could be abused to cause a denial of service - this completes the fix for GHSA-g2gp-3wwq-f4ph, which covered only inline attributes (GHSA-jjv6-8j6v-6j52)
+- Fixed the `AttributesExtension` rebuilding the accumulated class list on every merge, causing long runs of `.class` attributes to be resolved in quadratic time, which could be abused to cause a denial of service (GHSA-jjv6-8j6v-6j52)
+
 ## [2.9.0] - 2026-08-03
 
 This is a **security release** to address five denial of service vulnerabilities and one cross-site scripting (XSS) vulnerability.
@@ -771,7 +803,9 @@ No changes were introduced since the previous release.
     - Alternative 1: Use `CommonMarkConverter` or `GithubFlavoredMarkdownConverter` if you don't need to customize the environment
     - Alternative 2: Instantiate a new `Environment` and add the necessary extensions yourself
 
-[unreleased]: https://github.com/thephpleague/commonmark/compare/2.9.0...HEAD
+[unreleased]: https://github.com/thephpleague/commonmark/compare/2.9.2...HEAD
+[2.9.2]: https://github.com/thephpleague/commonmark/compare/2.9.1...2.9.2
+[2.9.1]: https://github.com/thephpleague/commonmark/compare/2.9.0...2.9.1
 [2.9.0]: https://github.com/thephpleague/commonmark/compare/2.8.3...2.9.0
 [2.8.3]: https://github.com/thephpleague/commonmark/compare/2.8.2...2.8.3
 [2.8.2]: https://github.com/thephpleague/commonmark/compare/2.8.1...2.8.2

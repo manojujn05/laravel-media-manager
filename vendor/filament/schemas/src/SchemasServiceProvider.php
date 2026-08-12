@@ -61,7 +61,7 @@ class SchemasServiceProvider extends PackageServiceProvider
         });
 
         on('call', function (object $component, string $method, array $params): void {
-            if (! in_array($method, ['_startUpload', '_finishUpload', '_uploadErrored', '_removeUpload'], strict: true)) {
+            if (! in_array($method, ['_startUpload', '_finishUpload'], strict: true)) {
                 return;
             }
 

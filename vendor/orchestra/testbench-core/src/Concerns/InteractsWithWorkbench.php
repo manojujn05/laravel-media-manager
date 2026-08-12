@@ -90,7 +90,6 @@ trait InteractsWithWorkbench
             return null;
         }
 
-        /** @phpstan-ignore return.type */
         return static::usesTestingConcern(WithWorkbench::class) || ! static::usesTestingConcern()
             ? Arr::wrap($providers)
             : [];

@@ -12,35 +12,16 @@ class ImplicitlyBoundMethod extends BoundMethod
 {
     protected static function getMethodDependencies($container, $callback, array $parameters = [])
     {
-        return static::resolveMethodDependencies($container, $callback, $parameters)['positional'];
-    }
-
-    public static function resolveMethodDependencies($container, $callback, array $parameters = [])
-    {
-        $positional = [];
-        $named = [];
+        $dependencies = [];
         $paramIndex = 0;
 
         foreach (static::getCallReflector($callback)->getParameters() as $parameter) {
-            $parameterPosition = count($positional);
-
             static::substituteNameBindingForCallParameter($parameter, $parameters, $paramIndex);
             static::substituteImplicitBindingForCallParameter($container, $parameter, $parameters);
-            static::addDependencyForCallParameter($container, $parameter, $parameters, $positional);
-
-            $parameterDependencies = array_slice($positional, $parameterPosition);
-
-            if ($parameterDependencies) {
-                $named[$parameter->getName()] = $parameter->isVariadic()
-                    ? $parameterDependencies
-                    : $parameterDependencies[0];
-            }
+            static::addDependencyForCallParameter($container, $parameter, $parameters, $dependencies);
         }
 
-        return [
-            'positional' => array_values(array_merge($positional, $parameters)),
-            'named' => $named,
-        ];
+        return array_values(array_merge($dependencies, $parameters));
     }
 
     protected static function substituteNameBindingForCallParameter($parameter, array &$parameters, int &$paramIndex)

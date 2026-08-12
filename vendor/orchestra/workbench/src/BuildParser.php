@@ -11,8 +11,10 @@ class BuildParser
 {
     /**
      * List of disallowed commands.
+     *
+     * @var array
      */
-    protected static array $disallowedCommands = [
+    protected static $disallowedCommands = [
         'workbench:build',
         'workbench:devtool',
         'workbench:install',

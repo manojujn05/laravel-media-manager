@@ -61,8 +61,7 @@ class AssetApiController extends Controller
 
         $asset = Asset::create([
             'title' => $request->input('title') ?: pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-            'alt_text' => $request->input('alt_text'),
-            'filename' => $file->getClientOriginalName(),
+            'alt' => $request->input('alt_text'),
             'path' => $path, // Ensures only relative storage path is saved
             'disk' => $disk,
             'mime_type' => $file->getMimeType(),

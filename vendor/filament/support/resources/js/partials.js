@@ -9,24 +9,22 @@ document.addEventListener('livewire:init', () => {
         return closestRoot.__livewire
     }
 
-    Livewire.interceptMessage(({ message, onSuccess }) => {
-        onSuccess(({ payload }) => {
+    Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
+        respond(() => {
             queueMicrotask(() => {
-                if (payload.effects?.html) {
+                if (component.effects.html) {
                     return
                 }
 
                 for (const [name, html] of Object.entries(
-                    payload.effects?.partials ?? {},
+                    component.effects.partials ?? {},
                 )) {
                     let els = Array.from(
-                        message.component.el.querySelectorAll(
+                        component.el.querySelectorAll(
                             `[wire\\:partial="${name}"]`,
                         ),
                     ).filter(
-                        (el) =>
-                            findClosestLivewireComponent(el) ===
-                            message.component,
+                        (el) => findClosestLivewireComponent(el) === component,
                     )
 
                     if (!els.length) {
@@ -47,11 +45,11 @@ document.addEventListener('livewire:init', () => {
                     let wrapper = document.createElement(wrapperTag)
 
                     wrapper.innerHTML = html
-                    wrapper.__livewire = message.component
+                    wrapper.__livewire = component
 
                     let to = wrapper.firstElementChild
 
-                    to.__livewire = message.component
+                    to.__livewire = component
 
                     let existingComponentsMap = {}
 
@@ -97,14 +95,13 @@ document.addEventListener('livewire:init', () => {
 
                             if (
                                 isComponentRootEl(el) &&
-                                el.getAttribute('wire:id') !==
-                                    message.component.id
+                                el.getAttribute('wire:id') !== component.id
                             ) {
                                 return skip()
                             }
 
                             if (isComponentRootEl(el)) {
-                                toEl.__livewire = message.component
+                                toEl.__livewire = component
                             }
                         },
 

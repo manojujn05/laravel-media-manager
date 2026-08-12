@@ -8,18 +8,29 @@ use LogicException;
 abstract class Preset
 {
     /**
+     * The application instance.
+     *
+     * @var \Illuminate\Contracts\Foundation\Application
+     */
+    protected $app;
+
+    /**
      * Construct a new preset.
      *
      * @return void
      */
-    public function __construct(
-        protected Application $app
-    ) {}
+    public function __construct(Application $app)
+    {
+        $this->app = $app;
+    }
 
     /**
      * Check if preset name equal to $name.
+     *
+     * @param  string  $name
+     * @return bool
      */
-    public function is(string $name): bool
+    public function is($name)
     {
         return $this->name() === $name;
     }
@@ -27,19 +38,18 @@ abstract class Preset
     /**
      * Get the model for the default guard's user provider.
      *
-     * @return class-string|null
-     *
-     * @throws \LogicException
+     * @param  string|null  $guard
+     * @return string|null
      */
-    public function userProviderModel(?string $guard = null): ?string
+    public function userProviderModel($guard = null)
     {
         /** @var \Illuminate\Contracts\Config\Repository $config */
         $config = $this->app->make('config');
 
         $guard = $guard ?: $config->get('auth.defaults.guard');
 
-        if (\is_null($provider = $config->get("auth.guards.{$guard}.provider"))) {
-            throw new LogicException(\sprintf('The [%s] guard is not defined in your "auth" configuration file.', $guard));
+        if (\is_null($provider = $config->get('auth.guards.'.$guard.'.provider'))) {
+            throw new LogicException('The ['.$guard.'] guard is not defined in your "auth" configuration file.');
         }
 
         return $config->get("auth.providers.{$provider}.model");
@@ -47,86 +57,120 @@ abstract class Preset
 
     /**
      * Preset name.
+     *
+     * @return string
      */
-    abstract public function name(): string;
+    abstract public function name();
 
     /**
      * Get the path to the base working directory.
+     *
+     * @return string
      */
-    abstract public function basePath(): string;
+    abstract public function basePath();
 
     /**
      * Get the path to the source directory.
+     *
+     * @return string
      */
-    abstract public function sourcePath(): string;
+    abstract public function sourcePath();
 
     /**
      * Get the path to the testing directory.
+     *
+     * @return string
      */
-    abstract public function testingPath(): string;
+    abstract public function testingPath();
 
     /**
      * Get the path to the resource directory.
+     *
+     * @return string
      */
-    abstract public function resourcePath(): string;
+    abstract public function resourcePath();
 
     /**
      * Get the path to the view directory.
+     *
+     * @return string
      */
-    abstract public function viewPath(): string;
+    abstract public function viewPath();
 
     /**
      * Get the path to the factory directory.
+     *
+     * @return string
      */
-    abstract public function factoryPath(): string;
+    abstract public function factoryPath();
 
     /**
      * Get the path to the migration directory.
+     *
+     * @return string
      */
-    abstract public function migrationPath(): string;
+    abstract public function migrationPath();
 
     /**
      * Get the path to the seeder directory.
+     *
+     * @return string
      */
-    abstract public function seederPath(): string;
+    abstract public function seederPath();
 
     /**
      * Preset namespace.
+     *
+     * @return string
      */
-    abstract public function rootNamespace(): string;
+    abstract public function rootNamespace();
 
     /**
      * Command namespace.
+     *
+     * @return string
      */
-    abstract public function commandNamespace(): string;
+    abstract public function commandNamespace();
 
     /**
      * Model namespace.
+     *
+     * @return string
      */
-    abstract public function modelNamespace(): string;
+    abstract public function modelNamespace();
 
     /**
      * Provider namespace.
+     *
+     * @return string
      */
-    abstract public function providerNamespace(): string;
+    abstract public function providerNamespace();
 
     /**
      * Testing namespace.
+     *
+     * @return string
      */
-    abstract public function testingNamespace(): string;
+    abstract public function testingNamespace();
 
     /**
      * Database factory namespace.
+     *
+     * @return string
      */
-    abstract public function factoryNamespace(): string;
+    abstract public function factoryNamespace();
 
     /**
      * Database seeder namespace.
+     *
+     * @return string
      */
-    abstract public function seederNamespace(): string;
+    abstract public function seederNamespace();
 
     /**
      * Preset has custom stub path.
+     *
+     * @return bool
      */
-    abstract public function hasCustomStubPath(): bool;
+    abstract public function hasCustomStubPath();
 }

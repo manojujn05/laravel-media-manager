@@ -18,8 +18,7 @@ class AssetResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'alt_text' => $this->alt_text,
-            'filename' => $this->filename,
+            'alt_text' => $this->alt,
             'path' => $this->path,
             'url' => Storage::disk($this->disk)->url($this->path),
             'mime_type' => $this->mime_type,

@@ -9,16 +9,17 @@ export default function checkboxTableColumn({ name, recordKey, state }) {
         unsubscribeLivewireHook: null,
 
         init() {
-            this.unsubscribeLivewireHook = Livewire.interceptMessage(
-                ({ message, onSuccess }) => {
-                    onSuccess(() => {
+            this.unsubscribeLivewireHook = Livewire.hook(
+                'commit',
+                ({ component, commit, succeed, fail, respond }) => {
+                    succeed(({ snapshot, effect }) => {
                         this.$nextTick(() => {
                             if (this.isLoading) {
                                 return
                             }
 
                             if (
-                                message.component.id !==
+                                component.id !==
                                 this.$root.closest('[wire\\:id]')?.attributes[
                                     'wire:id'
                                 ].value

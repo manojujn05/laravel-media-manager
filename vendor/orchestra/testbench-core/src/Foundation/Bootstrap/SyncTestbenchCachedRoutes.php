@@ -17,10 +17,7 @@ class SyncTestbenchCachedRoutes
      */
     public function bootstrap(Application $app): void
     {
-        /**
-         * @var \Illuminate\Foundation\Application&\Illuminate\Contracts\Foundation\Application $app
-         * @var \Illuminate\Routing\Router $router
-         */
+        /** @var \Illuminate\Routing\Router $router */
         $router = $app->make('router');
 
         /** @phpstan-ignore argument.type */

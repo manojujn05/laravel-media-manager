@@ -5,11 +5,7 @@ namespace Illuminate\Mail;
 use Closure;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
-use InvalidArgumentException;
 use RuntimeException;
 
 class Attachment
@@ -24,7 +20,7 @@ class Attachment
     public $as;
 
     /**
-     * The attached file's MIME type.
+     * The attached file's mime type.
      *
      * @var string|null
      */
@@ -41,6 +37,7 @@ class Attachment
      * Create a mail attachment.
      *
      * @param  \Closure  $resolver
+     * @return void
      */
     private function __construct(Closure $resolver)
     {
@@ -66,10 +63,6 @@ class Attachment
      */
     public static function fromUrl($url)
     {
-        if (! Str::isUrl($url, ['http', 'https'])) {
-            throw new InvalidArgumentException('Attachment URLs must use the http or https scheme.');
-        }
-
         return static::fromPath($url);
     }
 
@@ -88,24 +81,7 @@ class Attachment
     }
 
     /**
-     * Create a mail attachment from an UploadedFile instance.
-     *
-     * @param  \Illuminate\Http\UploadedFile  $file
-     * @return static
-     */
-    public static function fromUploadedFile(UploadedFile $file)
-    {
-        return new static(function ($attachment, $pathStrategy, $dataStrategy) use ($file) {
-            $attachment
-                ->as($file->getClientOriginalName())
-                ->withMime($file->getMimeType() ?? $file->getClientMimeType());
-
-            return $dataStrategy(fn () => $file->get(), $attachment);
-        });
-    }
-
-    /**
-     * Create a mail attachment from a file on the default storage disk.
+     * Create a mail attachment from a file in the default storage disk.
      *
      * @param  string  $path
      * @return static
@@ -116,7 +92,7 @@ class Attachment
     }
 
     /**
-     * Create a mail attachment from a file on the specified storage disk.
+     * Create a mail attachment from a file in the specified storage disk.
      *
      * @param  string|null  $disk
      * @param  string  $path
@@ -138,17 +114,6 @@ class Attachment
     }
 
     /**
-     * Create a mail attachment from a file on the cloud storage disk.
-     *
-     * @param  string  $path
-     * @return static
-     */
-    public static function fromCloudStorage($path)
-    {
-        return self::fromStorageDisk(Storage::getDefaultCloudDriver(), $path);
-    }
-
-    /**
      * Set the attached file's filename.
      *
      * @param  string|null  $name
@@ -162,7 +127,7 @@ class Attachment
     }
 
     /**
-     * Set the attached file's MIME type.
+     * Set the attached file's mime type.
      *
      * @param  string  $mime
      * @return $this
@@ -224,17 +189,15 @@ class Attachment
      */
     public function isEquivalent(Attachment $attachment, $options = [])
     {
-        $newOptions = [
+        return with([
             'as' => $options['as'] ?? $attachment->as,
             'mime' => $options['mime'] ?? $attachment->mime,
-        ];
-
-        return $this->attachWith(
+        ], fn ($options) => $this->attachWith(
             fn ($path) => [$path, ['as' => $this->as, 'mime' => $this->mime]],
             fn ($data) => [$data(), ['as' => $this->as, 'mime' => $this->mime]],
         ) === $attachment->attachWith(
-            fn ($path) => [$path, $newOptions],
-            fn ($data) => [$data(), $newOptions],
-        );
+            fn ($path) => [$path, $options],
+            fn ($data) => [$data(), $options],
+        ));
     }
 }

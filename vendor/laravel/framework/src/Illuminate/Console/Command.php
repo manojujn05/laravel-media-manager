@@ -73,19 +73,21 @@ class Command extends SymfonyCommand
     /**
      * The default exit code for isolated commands.
      *
-     * @var self::SUCCESS|self::FAILURE|self::INVALID
+     * @var int
      */
     protected $isolatedExitCode = self::SUCCESS;
 
     /**
      * The console command name aliases.
      *
-     * @var string[]
+     * @var array
      */
     protected $aliases;
 
     /**
      * Create a new console command instance.
+     *
+     * @return void
      */
     public function __construct()
     {
@@ -201,8 +203,8 @@ class Command extends SymfonyCommand
             ));
 
             return (int) (is_numeric($this->option('isolated'))
-                ? $this->option('isolated')
-                : $this->isolatedExitCode);
+                        ? $this->option('isolated')
+                        : $this->isolatedExitCode);
         }
 
         $method = method_exists($this, 'handle') ? 'handle' : '__invoke';
@@ -263,7 +265,7 @@ class Command extends SymfonyCommand
      * Fail the command manually.
      *
      * @param  \Throwable|string|null  $exception
-     * @return never
+     * @return void
      *
      * @throws \Illuminate\Console\ManuallyFailedException|\Throwable
      */

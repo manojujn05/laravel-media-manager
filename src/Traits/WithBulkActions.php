@@ -12,6 +12,7 @@ trait WithBulkActions
     public bool $selectAll = false;
     public string|int|null $bulkFolderId = null;
     public bool $showBulkMoveModal = false;
+    public bool $showBulkDeleteModal = false;
 
     // Toggle Select All Logic
     public function updatedSelectAll($value): void
@@ -31,20 +32,16 @@ trait WithBulkActions
     }
 
     // 1. Bulk Delete
- // 1. Bulk Delete
-    public function bulkDelete(): void
+ public function bulkDelete(): void
     {
         if (empty($this->selectedAssets)) return;
 
-        // Ensure we flatten the array in case it got nested
         $ids = collect($this->selectedAssets)->flatten()->filter()->toArray();
-
         if (empty($ids)) return;
 
         $assets = Asset::whereIn('id', $ids)->get();
         
         foreach ($assets as $asset) {
-            // Check if path is not null before deleting from storage
             if (!empty($asset->path)) {
                 Storage::disk($asset->disk ?? config('asset-manager.disk', 'public'))->delete($asset->path);
             }
@@ -52,24 +49,25 @@ trait WithBulkActions
         }
 
         $this->clearSelection();
-        if (property_exists($this, 'showBulkDeleteModal')) {
-            $this->showBulkDeleteModal = false;
-        }
+        $this->showBulkDeleteModal = false;
+        
         $this->dispatch('notify', 'Selected assets deleted successfully!');
     }
-public function deleteAsset($id): void
-{
-    $asset = Asset::find($id);
 
-    if ($asset) {
-        if (!empty($asset->path)) {
-            Storage::disk($asset->disk ?? config('asset-manager.disk', 'public'))->delete($asset->path);
+    public function deleteAsset($id): void
+    {
+        $asset = Asset::find($id);
+
+        if ($asset) {
+            if (!empty($asset->path)) {
+                Storage::disk($asset->disk ?? config('asset-manager.disk', 'public'))->delete($asset->path);
+            }
+            $asset->delete();
+            
+            $this->dispatch('notify', 'Asset deleted successfully!');
         }
-        $asset->delete();
-        
-        $this->dispatch('notify', 'Asset deleted successfully!');
     }
-}
+
     // 2. Bulk Favorite / Unfavorite
     public function bulkToggleFavorite(bool $status = true): void
     {
@@ -94,8 +92,6 @@ public function deleteAsset($id): void
         $this->clearSelection();
         $this->dispatch('notify', 'Assets moved successfully!');
     }
-
-
 
     // 5. Bulk Download Zip
     public function bulkDownloadZip()

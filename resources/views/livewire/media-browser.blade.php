@@ -110,9 +110,12 @@
             </main>
 
             <!-- Asset Preview Sidebar -->
-            <aside class="w-72 border-l border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-900 shrink-0 shadow-xs">
-                @include('asset-manager::livewire.partials.preview')
-            </aside>
+           <!-- Asset Preview Sidebar -->
+@if($previewAsset)
+    <aside class="w-72 border-l border-gray-200/80 dark:border-gray-800/80 bg-white dark:bg-gray-900 shrink-0 shadow-xs">
+        @include('asset-manager::livewire.partials.preview')
+    </aside>
+@endif
 
         </div>
 

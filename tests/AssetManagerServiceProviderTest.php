@@ -2,13 +2,32 @@
 
 namespace Innopanda\AssetManager\Tests;
 
-use Innopanda\AssetManager\Tests\TestCase;
+use Orchestra\Testbench\TestCase;
 use Innopanda\AssetManager\AssetManagerServiceProvider;
 use Innopanda\AssetManager\AssetManager;
+use Livewire\LivewireServiceProvider;
 
 class AssetManagerServiceProviderTest extends TestCase
 {
-    // Setup is handled by Innopanda\AssetManager\Tests\TestCase
+    /**
+     * Load the service providers for the test environment.
+     */
+    protected function getPackageProviders($app)
+    {
+        return [
+            LivewireServiceProvider::class,
+            AssetManagerServiceProvider::class,
+        ];
+    }
+
+    /**
+     * Define environment setup.
+     */
+    protected function defineEnvironment($app)
+    {
+        // Setup default database to use sqlite :memory:
+        $app['config']->set('database.default', 'testing');
+    }
 
     public function test_asset_manager_singleton_is_bound()
     {

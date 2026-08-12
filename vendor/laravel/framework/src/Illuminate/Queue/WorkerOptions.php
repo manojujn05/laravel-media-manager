@@ -103,6 +103,7 @@ class WorkerOptions
      * @param  int  $maxTime
      * @param  int  $rest
      * @param  int  $stopWhenEmptyFor
+     * @return void
      */
     public function __construct(
         $name = 'default',

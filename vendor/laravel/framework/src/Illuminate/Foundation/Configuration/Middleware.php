@@ -451,7 +451,6 @@ class Middleware
     public function getGlobalMiddleware()
     {
         $middleware = $this->global ?: array_values(array_filter([
-            \Illuminate\Http\Middleware\ValidatePathEncoding::class,
             \Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks::class,
             $this->trustHosts ? \Illuminate\Http\Middleware\TrustHosts::class : null,
             \Illuminate\Http\Middleware\TrustProxies::class,
@@ -555,8 +554,8 @@ class Middleware
     /**
      * Configure where users are redirected by the authentication and guest middleware.
      *
-     * @param  callable|string|null  $guests
-     * @param  callable|string|null  $users
+     * @param  callable|string  $guests
+     * @param  callable|string  $users
      * @return $this
      */
     public function redirectTo(callable|string|null $guests = null, callable|string|null $users = null)

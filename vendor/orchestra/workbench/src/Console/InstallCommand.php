@@ -49,17 +49,19 @@ class InstallCommand extends Command implements PromptsForMissingInput
      */
     public function handle(Filesystem $filesystem)
     {
-        $devtool = match (true) {
-            \is_bool($this->option('devtool')) => $this->option('devtool'),
-            default => $this->components->confirm('Install Workbench DevTool?', true),
-        };
+        if (! $this->option('skip-devtool')) {
+            $devtool = match (true) {
+                \is_bool($this->option('devtool')) => $this->option('devtool'),
+                default => $this->components->confirm('Install Workbench DevTool?', true),
+            };
 
-        if ($devtool === true) {
-            $this->call('workbench:devtool', [
-                '--force' => $this->option('force'),
-                '--no-install' => true,
-                '--basic' => $this->option('basic'),
-            ]);
+            if ($devtool === true) {
+                $this->call('workbench:devtool', [
+                    '--force' => $this->option('force'),
+                    '--no-install' => true,
+                    '--basic' => $this->option('basic'),
+                ]);
+            }
         }
 
         $workingPath = package_path();
@@ -241,7 +243,9 @@ class InstallCommand extends Command implements PromptsForMissingInput
     {
         $devtool = null;
 
-        if (\is_null($input->getOption('devtool'))) {
+        if ($input->getOption('skip-devtool') === true) {
+            $devtool = false;
+        } elseif (\is_null($input->getOption('devtool'))) {
             $devtool = confirm('Run Workbench DevTool installation?', true);
         }
 
@@ -261,6 +265,9 @@ class InstallCommand extends Command implements PromptsForMissingInput
             ['force', 'f', InputOption::VALUE_NONE, 'Overwrite any existing files'],
             ['devtool', null, InputOption::VALUE_NEGATABLE, 'Run DevTool installation'],
             ['basic', null, InputOption::VALUE_NONE, 'Skipped routes and discovers installation'],
+
+            /** @deprecated */
+            ['skip-devtool', null, InputOption::VALUE_NONE, 'Skipped DevTool installation (deprecated)'],
         ];
     }
 }
