@@ -179,6 +179,7 @@ class ArrayComparator extends Comparator
                 $expectedAsString,
                 $actualAsString,
                 'Failed asserting that two arrays are equal.',
+                $this->contextLines(),
             );
         }
     }

@@ -22,6 +22,7 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Middleware\TrustHosts;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 use Illuminate\Mail\Markdown;
 use Illuminate\Queue\Console\WorkCommand;
 use Illuminate\Queue\Queue;
@@ -226,19 +227,21 @@ class Application
         Component::forgetComponentsResolver();
         Component::forgetFactory();
         ConvertEmptyStringsToNull::flushState();
-        Factory::flushState();
         EncodedHtmlString::flushState();
+        Factory::flushState();
 
         if (! $instance instanceof Commander) {
             HandleExceptions::flushState($instance);
         }
 
-        JsonResource::wrap('data');
+        JsonResource::flushState();
+        JsonApiResource::flushState();
         Markdown::flushState();
         Migrator::withoutMigrations([]);
         Model::handleDiscardedAttributeViolationUsing(null);
         Model::handleLazyLoadingViolationUsing(null);
         Model::handleMissingAttributeViolationUsing(null);
+        Model::automaticallyEagerLoadRelationships(false);
         Model::preventAccessingMissingAttributes(false);
         Model::preventLazyLoading(false);
         Model::preventSilentlyDiscardingAttributes(false);
@@ -354,8 +357,6 @@ class Application
      * Resolve the application's base path.
      *
      * @api
-     *
-     * @internal
      *
      * @return string
      */

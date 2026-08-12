@@ -178,6 +178,7 @@ class Cloud
 
         $app['config']->set('logging.channels.laravel-cloud-socket', [
             'driver' => 'monolog',
+            'level' => $_ENV['LOG_LEVEL'] ?? $_SERVER['LOG_LEVEL'] ?? 'debug',
             'handler' => SocketHandler::class,
             'formatter' => LaravelCloudJsonFormatter::class,
             'formatter_with' => [
@@ -186,6 +187,7 @@ class Cloud
             'with' => [
                 'connectionString' => Cloud::socket(),
                 'persistent' => true,
+                'timeout' => 2.0,
             ],
         ]);
     }

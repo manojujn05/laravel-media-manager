@@ -5,6 +5,7 @@ namespace Illuminate\Foundation\Cloud;
 use Aws\CommandInterface;
 use Aws\Exception\AwsException;
 use Aws\Sqs\SqsClient;
+use Illuminate\Contracts\Database\LostConnectionDetector;
 use Illuminate\Foundation\Application;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 use Illuminate\Queue\Events\JobQueued;
@@ -99,6 +100,15 @@ class QueueConnector implements ConnectorInterface
      */
     protected function configureWorker(Queue $queue): void
     {
+        Worker::$restartable = false;
+        Worker::$pausable = false;
+
+        // Exit the worker (and restart the pod) when the agent socket is unreachable...
+        $this->app->extend(
+            LostConnectionDetector::class,
+            fn ($detector) => new AgentAwareLostConnectionDetector($detector),
+        );
+
         $this->app['events']->listen(fn (WorkerStopping $event) => match ($event->reason) {
             WorkerStopReason::TimedOut => $queue->finishProcessingJob(default: 'released'),
             default => $queue->finishProcessingJob(),

@@ -66,14 +66,4 @@ trait WithLaravelBootstrapFile
      * @return string
      */
     abstract protected function getApplicationBasePath();
-
-    /**
-     * Get the default application bootstrap file path (if exists).
-     *
-     * @internal
-     *
-     * @param  string  $filename
-     * @return string|false
-     */
-    abstract protected function getDefaultApplicationBootstrapFile(string $filename): string|false;
 }

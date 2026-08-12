@@ -286,9 +286,7 @@ class DevToolCommand extends Command implements PromptsForMissingInput
     {
         $install = null;
 
-        if ($input->getOption('skip-install') === true) {
-            $install = false;
-        } elseif (\is_null($input->getOption('install'))) {
+        if (\is_null($input->getOption('install'))) {
             $install = confirm('Run Workbench installation?', true);
         }
 
@@ -308,9 +306,6 @@ class DevToolCommand extends Command implements PromptsForMissingInput
             ['force', 'f', InputOption::VALUE_NONE, 'Overwrite any existing files'],
             ['install', null, InputOption::VALUE_NEGATABLE, 'Run Workbench installation'],
             ['basic', null, InputOption::VALUE_NONE, 'Workbench installation without discovers and routes'],
-
-            /** @deprecated */
-            ['skip-install', null, InputOption::VALUE_NONE, 'Skipped Workbench installation (deprecated)'],
         ];
     }
 }

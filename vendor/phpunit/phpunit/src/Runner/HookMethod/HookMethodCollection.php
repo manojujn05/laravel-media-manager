@@ -10,7 +10,6 @@
 namespace PHPUnit\Runner;
 
 use function array_map;
-use function strtolower;
 use function usort;
 
 /**
@@ -20,7 +19,6 @@ use function usort;
  */
 final class HookMethodCollection
 {
-    private readonly HookMethod $defaultHookMethod;
     private readonly bool $shouldPrepend;
 
     /**
@@ -60,17 +58,8 @@ final class HookMethodCollection
 
     private function __construct(HookMethod $default, bool $shouldPrepend)
     {
-        $this->defaultHookMethod = $default;
-        $this->hookMethods       = [$default];
-        $this->shouldPrepend     = $shouldPrepend;
-    }
-
-    /**
-     * @param non-empty-string $methodName
-     */
-    public function isDefaultHookMethod(string $methodName): bool
-    {
-        return strtolower($methodName) === strtolower($this->defaultHookMethod->methodName());
+        $this->hookMethods   = [$default];
+        $this->shouldPrepend = $shouldPrepend;
     }
 
     public function add(HookMethod $hookMethod): self

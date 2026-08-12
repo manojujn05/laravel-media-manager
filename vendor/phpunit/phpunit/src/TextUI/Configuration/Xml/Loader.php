@@ -44,6 +44,8 @@ use PHPUnit\TextUI\Configuration\File;
 use PHPUnit\TextUI\Configuration\FileCollection;
 use PHPUnit\TextUI\Configuration\FilterDirectory;
 use PHPUnit\TextUI\Configuration\FilterDirectoryCollection;
+use PHPUnit\TextUI\Configuration\FilterFile;
+use PHPUnit\TextUI\Configuration\FilterFileCollection;
 use PHPUnit\TextUI\Configuration\Group;
 use PHPUnit\TextUI\Configuration\GroupCollection;
 use PHPUnit\TextUI\Configuration\IniSetting;
@@ -346,9 +348,13 @@ final readonly class Loader
             $identifyIssueTrigger               = $this->parseBooleanAttribute($element, 'identifyIssueTrigger', true);
         }
 
+        $deprecationTriggerElement = $this->element($xpath, 'source/deprecationTrigger');
+
         $deprecationTriggers = [
-            'functions' => [],
-            'methods'   => [],
+            'functions'               => [],
+            'methods'                 => [],
+            'ignoreUndefinedTriggers' => $deprecationTriggerElement !== null &&
+                $this->parseBooleanAttribute($deprecationTriggerElement, 'ignoreUndefinedTriggers', false),
         ];
 
         $functionNodes = $xpath->query('source/deprecationTrigger/function');
@@ -369,6 +375,17 @@ final readonly class Loader
             assert($methodNode instanceof DOMElement);
 
             $deprecationTriggers['methods'][] = $methodNode->textContent;
+        }
+
+        $issueTriggerResolvers     = [];
+        $issueTriggerResolverNodes = $xpath->query('source/issueTriggerResolvers/issueTriggerResolver');
+
+        assert($issueTriggerResolverNodes instanceof DOMNodeList);
+
+        foreach ($issueTriggerResolverNodes as $node) {
+            assert($node instanceof DOMElement);
+
+            $issueTriggerResolvers[] = $node->getAttribute('className');
         }
 
         return new Source(
@@ -392,6 +409,7 @@ final readonly class Loader
             $ignoreDirectDeprecations,
             $ignoreIndirectDeprecations,
             $identifyIssueTrigger,
+            $issueTriggerResolvers,
         );
     }
 
@@ -479,21 +497,39 @@ final readonly class Loader
         if ($element !== null) {
             $defaultColors     = Colors::default();
             $defaultThresholds = Thresholds::default();
+            $outputDirectory   = $this->parseStringAttribute($element, 'outputDirectory');
 
-            $html = new CodeCoverageHtml(
-                new Directory(
+            if ($outputDirectory !== null) {
+                $outputDirectory = new Directory(
                     $this->toAbsolutePath(
                         $filename,
-                        (string) $this->parseStringAttribute($element, 'outputDirectory'),
+                        $outputDirectory,
                     ),
-                ),
+                );
+            }
+
+            $html = new CodeCoverageHtml(
+                $outputDirectory,
                 $this->parseIntegerAttribute($element, 'lowUpperBound', $defaultThresholds->lowUpperBound()),
                 $this->parseIntegerAttribute($element, 'highLowerBound', $defaultThresholds->highLowerBound()),
                 $this->parseStringAttributeWithDefault($element, 'colorSuccessLow', $defaultColors->successLow()),
+                $this->parseStringAttributeWithDefault($element, 'colorSuccessLowDark', $defaultColors->successLowDark()),
                 $this->parseStringAttributeWithDefault($element, 'colorSuccessMedium', $defaultColors->successMedium()),
+                $this->parseStringAttributeWithDefault($element, 'colorSuccessMediumDark', $defaultColors->successMediumDark()),
                 $this->parseStringAttributeWithDefault($element, 'colorSuccessHigh', $defaultColors->successHigh()),
+                $this->parseStringAttributeWithDefault($element, 'colorSuccessHighDark', $defaultColors->successHighDark()),
+                $this->parseStringAttributeWithDefault($element, 'colorSuccessBar', $defaultColors->successBar()),
+                $this->parseStringAttributeWithDefault($element, 'colorSuccessBarDark', $defaultColors->successBarDark()),
                 $this->parseStringAttributeWithDefault($element, 'colorWarning', $defaultColors->warning()),
+                $this->parseStringAttributeWithDefault($element, 'colorWarningDark', $defaultColors->warningDark()),
+                $this->parseStringAttributeWithDefault($element, 'colorWarningBar', $defaultColors->warningBar()),
+                $this->parseStringAttributeWithDefault($element, 'colorWarningBarDark', $defaultColors->warningBarDark()),
                 $this->parseStringAttributeWithDefault($element, 'colorDanger', $defaultColors->danger()),
+                $this->parseStringAttributeWithDefault($element, 'colorDangerDark', $defaultColors->dangerDark()),
+                $this->parseStringAttributeWithDefault($element, 'colorDangerBar', $defaultColors->dangerBar()),
+                $this->parseStringAttributeWithDefault($element, 'colorDangerBarDark', $defaultColors->dangerBarDark()),
+                $this->parseStringAttributeWithDefault($element, 'colorBreadcrumbs', $defaultColors->breadcrumbs()),
+                $this->parseStringAttributeWithDefault($element, 'colorBreadcrumbsDark', $defaultColors->breadcrumbsDark()),
                 $this->parseStringAttribute($element, 'customCssFile'),
             );
         }
@@ -620,13 +656,14 @@ final readonly class Loader
                 $this->toAbsolutePath($filename, $directoryPath),
                 $directoryNode->hasAttribute('prefix') ? $directoryNode->getAttribute('prefix') : '',
                 $directoryNode->hasAttribute('suffix') ? $directoryNode->getAttribute('suffix') : '.php',
+                !$directoryNode->hasAttribute('includeInCodeCoverage') || $directoryNode->getAttribute('includeInCodeCoverage') !== 'false',
             );
         }
 
         return FilterDirectoryCollection::fromArray($directories);
     }
 
-    private function readFilterFiles(string $filename, DOMXPath $xpath, string $query): FileCollection
+    private function readFilterFiles(string $filename, DOMXPath $xpath, string $query): FilterFileCollection
     {
         $files = [];
 
@@ -635,16 +672,19 @@ final readonly class Loader
         assert($fileNodes instanceof DOMNodeList);
 
         foreach ($fileNodes as $fileNode) {
-            assert($fileNode instanceof DOMNode);
+            assert($fileNode instanceof DOMElement);
 
             $filePath = $fileNode->textContent;
 
             if ($filePath !== '') {
-                $files[] = new File($this->toAbsolutePath($filename, $filePath));
+                $files[] = new FilterFile(
+                    $this->toAbsolutePath($filename, $filePath),
+                    !$fileNode->hasAttribute('includeInCodeCoverage') || $fileNode->getAttribute('includeInCodeCoverage') !== 'false',
+                );
             }
         }
 
-        return FileCollection::fromArray($files);
+        return FilterFileCollection::fromArray($files);
     }
 
     private function groups(DOMXPath $xpath): Groups
@@ -918,6 +958,12 @@ final readonly class Loader
             $requireCoverageMetadata = $this->parseBooleanAttribute($document->documentElement, 'requireCoverageMetadata', false);
         }
 
+        $requireSealedMockObjects = false;
+
+        if ($document->documentElement->hasAttribute('requireSealedMockObjects')) {
+            $requireSealedMockObjects = $this->parseBooleanAttribute($document->documentElement, 'requireSealedMockObjects', false);
+        }
+
         $beStrictAboutCoverageMetadata = false;
 
         if ($document->documentElement->hasAttribute('beStrictAboutCoverageMetadata')) {
@@ -947,6 +993,7 @@ final readonly class Loader
             $this->parseBooleanAttribute($document->documentElement, 'displayDetailsOnTestsThatTriggerWarnings', false),
             $this->parseBooleanAttribute($document->documentElement, 'reverseDefectList', false),
             $requireCoverageMetadata,
+            $requireSealedMockObjects,
             $bootstrap,
             $this->bootstrapForTestSuite($filename, $xpath),
             $this->parseBooleanAttribute($document->documentElement, 'processIsolation', false),

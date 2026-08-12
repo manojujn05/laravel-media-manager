@@ -10,6 +10,7 @@
 namespace PHPUnit\Framework;
 
 use const PHP_EOL;
+use function array_any;
 use function array_keys;
 use function array_merge;
 use function array_reverse;
@@ -137,7 +138,6 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
      * @var list<callable>
      */
     private ?array $backupGlobalExceptionHandlers   = null;
-    private ?bool $runClassInSeparateProcess        = null;
     private ?bool $runTestInSeparateProcess         = null;
     private bool $preserveGlobalState               = false;
     private bool $inIsolation                       = false;
@@ -314,7 +314,7 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
     {
         $buffer = sprintf(
             '%s::%s',
-            (new ReflectionClass($this))->getName(),
+            new ReflectionClass($this)->getName(),
             $this->methodName,
         );
 
@@ -368,7 +368,6 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
 
         (new SeparateProcessTestRunner)->run(
             $this,
-            $this->runClassInSeparateProcess && !$this->runTestInSeparateProcess,
             $this->preserveGlobalState,
             $this->requiresXdebug(),
         );
@@ -775,14 +774,6 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
     /**
      * @internal This method is not covered by the backward compatibility promise for PHPUnit
      */
-    final public function setRunClassInSeparateProcess(bool $runClassInSeparateProcess): void
-    {
-        $this->runClassInSeparateProcess = $runClassInSeparateProcess;
-    }
-
-    /**
-     * @internal This method is not covered by the backward compatibility promise for PHPUnit
-     */
     final public function setPreserveGlobalState(bool $preserveGlobalState): void
     {
         $this->preserveGlobalState = $preserveGlobalState;
@@ -995,6 +986,12 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
      */
     final protected function any(): AnyInvokedCountMatcher
     {
+        Event\Facade::emitter()->testTriggeredPhpunitDeprecation(
+            $this->testValueObjectForEvents,
+            'The any() invoked count expectation is deprecated and will be removed in PHPUnit 14. ' .
+            'Use a test stub instead or configure a real invocation count expectation.',
+        );
+
         return new AnyInvokedCountMatcher;
     }
 
@@ -1012,6 +1009,14 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
      */
     final protected function atLeast(int $requiredInvocations): InvokedAtLeastCountMatcher
     {
+        if ($requiredInvocations < 1) {
+            Event\Facade::emitter()->testTriggeredPhpunitDeprecation(
+                $this->valueObjectForEvents(),
+                'Calling atLeast() with an argument that is not positive is deprecated.' . PHP_EOL .
+                'This will become an error in PHPUnit 14.',
+            );
+        }
+
         return new InvokedAtLeastCountMatcher(
             $requiredInvocations,
         );
@@ -1378,7 +1383,11 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
     private function stripDateFromErrorLog(string $log): string
     {
         // https://github.com/php/php-src/blob/c696087e323263e941774ebbf902ac249774ec9f/main/main.c#L905
-        return preg_replace('/\[\d+-\w+-\d+ \d+:\d+:\d+ [^\r\n[\]]+?\] /', '', $log);
+        $result = preg_replace('/\[\d+-\w+-\d+ \d+:\d+:\d+ [^\r\n[\]]+?\] /', '', $log);
+
+        assert($result !== null);
+
+        return $result;
     }
 
     /**
@@ -1402,15 +1411,10 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         foreach ($this->expectedUserDeprecationMessageRegularExpression as $deprecationExpectation) {
             $this->numberOfAssertionsPerformed++;
 
-            $expectedDeprecationTriggered = false;
-
-            foreach (DeprecationCollector::deprecations() as $deprecation) {
-                if (@preg_match($deprecationExpectation, $deprecation) > 0) {
-                    $expectedDeprecationTriggered = true;
-
-                    break;
-                }
-            }
+            $expectedDeprecationTriggered = array_any(
+                DeprecationCollector::deprecations(),
+                static fn (string $deprecation) => @preg_match($deprecationExpectation, $deprecation) > 0,
+            );
 
             if (!$expectedDeprecationTriggered) {
                 throw new ExpectationFailedException(
@@ -1430,10 +1434,25 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
     {
         $allowsMockObjectsWithoutExpectations = $this->allowsMockObjectsWithoutExpectations();
         $isPhpunitTestSuite                   = str_starts_with($this::class, 'PHPUnit\\');
+        $requireSealedMockObjects             = ConfigurationRegistry::get()->requireSealedMockObjects();
 
         foreach ($this->mockObjects as $mockObject) {
-            if (!$mockObject['mockObject']->__phpunit_hasInvocationCountRule()) {
-                if (!$mockObject['mockObject']->__phpunit_hasParametersRule() &&
+            $mockedType = $mockObject['type'];
+            $mockObject = $mockObject['mockObject'];
+
+            if ($requireSealedMockObjects &&
+                !$mockObject->__phpunit_getInvocationHandler()->isSealed()) {
+                Event\Facade::emitter()->testConsideredRisky(
+                    $this->valueObjectForEvents(),
+                    sprintf(
+                        'Mock object for %s has not been sealed',
+                        $mockedType,
+                    ),
+                );
+            }
+
+            if (!$mockObject->__phpunit_hasInvocationCountRule()) {
+                if (!$mockObject->__phpunit_hasParametersRule() &&
                     !$allowsMockObjectsWithoutExpectations &&
                     !$isPhpunitTestSuite) {
                     Event\Facade::emitter()->testTriggeredPhpunitNotice(
@@ -1442,7 +1461,7 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
                             'No expectations were configured for the mock object for %s. ' .
                             'Consider refactoring your test code to use a test stub instead. ' .
                             'The #[AllowMockObjectsWithoutExpectations] attribute can be used to opt out of this check.',
-                            $mockObject['type'],
+                            $mockedType,
                         ),
                     );
                 }
@@ -1452,8 +1471,8 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
 
             $this->numberOfAssertionsPerformed++;
 
-            $mockObject['mockObject']->__phpunit_verify(
-                $this->shouldInvocationMockerBeReset($mockObject['mockObject']),
+            $mockObject->__phpunit_verify(
+                $this->shouldInvocationMockerBeReset($mockObject),
             );
         }
     }
@@ -1908,7 +1927,7 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
             return;
         }
 
-        $differ = new Differ(new UnifiedDiffOutputBuilder($header));
+        $differ = new Differ(new UnifiedDiffOutputBuilder($header, false, 3, false));
 
         Event\Facade::emitter()->testConsideredRisky(
             $this->valueObjectForEvents(),
@@ -2027,10 +2046,6 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         }
 
         if ($this->runTestInSeparateProcess) {
-            return true;
-        }
-
-        if ($this->runClassInSeparateProcess) {
             return true;
         }
 
@@ -2362,13 +2377,10 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
 
     private function isRegisteredFailure(Throwable $t): bool
     {
-        foreach (array_keys($this->failureTypes) as $failureType) {
-            if ($t instanceof $failureType) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            array_keys($this->failureTypes),
+            static fn (string $failureType) => $t instanceof $failureType,
+        );
     }
 
     /**

@@ -107,9 +107,9 @@ class Workbench extends \Orchestra\Testbench\Workbench\Workbench
      *
      * @codeCoverageIgnore
      */
-    public static function swapFile(string $name, ?string $file): void
+    public static function swapFile(string $name, ?string $file): StubRegistrar
     {
-        static::stub()->swap($name, $file);
+        return static::stub()->swap($name, $file);
     }
 
     /**

@@ -28,7 +28,6 @@ use Orchestra\Testbench\Foundation\PackageManifest;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 use function Orchestra\Sidekick\after_resolving;
-use function Orchestra\Sidekick\Filesystem\join_paths;
 use function Orchestra\Testbench\default_skeleton_path;
 use function Orchestra\Testbench\refresh_router_lookups;
 
@@ -147,7 +146,6 @@ trait CreatesApplication
         ))->merge($this->getPackageAliases($app));
 
         if (! empty($overrides = $this->overrideApplicationAliases($app))) {
-            /** @phpstan-ignore argument.type */
             $aliases->transform(static function ($alias, $name) use ($overrides) {
                 return with($overrides[$name] ?? $alias, static function ($alias) {
                     return $alias !== false ? $alias : null;
@@ -155,6 +153,7 @@ trait CreatesApplication
             });
         }
 
+        /** @var \Illuminate\Support\Collection<string, class-string> $aliases */
         return $aliases->filter()->all();
     }
 
@@ -220,12 +219,12 @@ trait CreatesApplication
      */
     final protected function resolveApplicationProviders($app): array
     {
+        /** @var \Illuminate\Support\Collection<int, class-string> $providers */
         $providers = (new Collection(
             RegisterProviders::mergeAdditionalProvidersForTestbench($this->getApplicationProviders($app))
         ))->merge($this->getPackageProviders($app));
 
         if (! empty($overrides = $this->overrideApplicationProviders($app))) {
-            /** @phpstan-ignore argument.type */
             $providers->transform(static function (string $provider) use ($overrides) {
                 return with($overrides[$provider] ?? $provider, static function ($provider) {
                     return $provider !== false ? $provider : null;
@@ -233,6 +232,7 @@ trait CreatesApplication
             });
         }
 
+        /** @phpstan-ignore return.type */
         return $providers->filter()->values()->all();
     }
 
@@ -259,40 +259,6 @@ trait CreatesApplication
     protected function getApplicationBasePath()
     {
         return static::applicationBasePath();
-    }
-
-    /**
-     * Resolve the application's base path (deprecated).
-     *
-     * @api
-     *
-     * @return string|null
-     *
-     * @deprecated 6.22.0 Use `applicationBasePath()` static method instead.
-     */
-    protected function getBasePath()
-    {
-        trigger_deprecation('orchestra/testbench-core', '6.22.0', 'Use `%s` static method instead.', 'applicationBasePath()');
-
-        return static::applicationBasePath();
-    }
-
-    /**
-     * Get the default application bootstrap file path (if exists).
-     *
-     * @internal
-     *
-     * @param  string  $filename
-     * @return string|false
-     *
-     * @deprecated
-     *
-     * @codeCoverageIgnore
-     */
-    #[\Deprecated('Removed unreliable method to determine default skeleton', since: '9.7.0')]
-    protected function getDefaultApplicationBootstrapFile(string $filename): string|false
-    {
-        return default_skeleton_path(join_paths('bootstrap', $filename));
     }
 
     /**
@@ -679,6 +645,8 @@ trait CreatesApplication
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
+     *
+     * @deprecated 10.0 Use "defineEnvironment()" instead.
      */
     protected function getEnvironmentSetUp($app)
     {

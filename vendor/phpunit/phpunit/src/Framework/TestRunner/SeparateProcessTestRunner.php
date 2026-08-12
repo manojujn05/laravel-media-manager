@@ -50,19 +50,9 @@ final class SeparateProcessTestRunner
      * @throws NoPreviousThrowableException
      * @throws ProcessIsolationException
      */
-    public function run(TestCase $test, bool $runEntireClass, bool $preserveGlobalState, bool $requiresXdebug): void
+    public function run(TestCase $test, bool $preserveGlobalState, bool $requiresXdebug): void
     {
         $class = new ReflectionClass($test);
-
-        if ($runEntireClass) {
-            $template = new Template(
-                __DIR__ . '/templates/class.tpl',
-            );
-        } else {
-            $template = new Template(
-                __DIR__ . '/templates/method.tpl',
-            );
-        }
 
         $bootstrap     = '';
         $constants     = '';
@@ -133,6 +123,7 @@ final class SeparateProcessTestRunner
             'phar'                           => $phar,
             'filename'                       => $file,
             'className'                      => $class->getName(),
+            'methodName'                     => $test->name(),
             'collectCodeCoverageInformation' => $coverage,
             'data'                           => $data,
             'dataName'                       => $dataName,
@@ -151,9 +142,7 @@ final class SeparateProcessTestRunner
             'sourceMapFile'                  => $sourceMapFile,
         ];
 
-        if (!$runEntireClass) {
-            $var['methodName'] = $test->name();
-        }
+        $template = new Template(__DIR__ . '/templates/method.tpl');
 
         $template->setVar($var);
 
