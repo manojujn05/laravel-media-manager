@@ -10,10 +10,7 @@
             <div class="w-4"></div>
             @endif
             {{-- Folder Icon for Edit Mode --}}
-            <svg
-                class="h-4 w-4 flex-shrink-0 text-amber-500"
-                fill="currentColor"
-                viewBox="0 0 20 20">
+            <svg class="h-4 w-4 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 5a2 2 0 012-2h3l2 2h7a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V5z" />
             </svg>
             <input
@@ -26,9 +23,7 @@
                 class="rounded-lg bg-blue-600 px-1 py-1 text-xs font-medium text-white transition hover:bg-blue-700">
                 Save
             </button>
-            <button
-                wire:click="cancel"
-                class="rounded-lg border border-slate-300 bg-white px-1 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
+            <button wire:click="cancel" class="rounded-lg border border-slate-300 bg-white px-1 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
                 Cancel
             </button>
         </div>

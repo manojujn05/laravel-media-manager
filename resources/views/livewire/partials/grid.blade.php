@@ -54,17 +54,11 @@
                     </div>
                     {{-- Card Footer Info --}}
                     <div class="flex flex-col justify-between flex-grow p-3 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700/60">
-                        <div 
-                            class="text-xs font-medium truncate text-gray-900 dark:text-gray-100" 
-                            title="{{ basename($asset->path) }}"
+                        <div class="text-xs font-medium truncate text-gray-900 dark:text-gray-100" title="{{ basename($asset->path) }}"
                         >
                             {{ basename($asset->path) }}
                         </div>
-                        <button
-                            type="button"
-                            wire:click="selectAsset({{ $asset->id }})"
-                            class="mt-2 w-full rounded-lg bg-indigo-600 px-2 py-1 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
-                        >
+                        <button type="button"  wire:click="selectAsset({{ $asset->id }})" class="mt-2 w-full rounded-lg bg-indigo-600 px-2 py-1 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"                   >
                             Select
                         </button>
                     </div>
