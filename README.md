@@ -9,9 +9,6 @@ Laravel Asset Manager provides a complete interface for uploading, organizing, b
 * 📁 **Virtual Folder Tree**
   Organize assets into nested folders without changing their physical storage paths.
 
-* 🕒 **File Version History**
-  Keep track of file versions and restore previous versions when needed.
-
 * 🔄 **Seamless File Replacement**
   Replace an existing asset while preserving its database relationships and associations.
 
