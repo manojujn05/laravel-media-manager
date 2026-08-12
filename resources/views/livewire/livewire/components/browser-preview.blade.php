@@ -74,8 +74,7 @@
                 </button>
 
                 <button
-                    wire:click="delete"
-                    wire:confirm="Delete this asset?"
+                    wire:click="confirmAction('Delete Asset', 'Are you sure you want to delete this asset?', 'delete', null, 'Delete', 'destructive')"
                     class="w-full rounded-lg bg-red-600 py-2 text-white hover:bg-red-700">
                     Delete
                 </button>
@@ -104,4 +103,6 @@
             </div>
         </div>
     @endif
+    
+    @include('asset-manager::livewire.partials.confirmation-modal')
 </div>

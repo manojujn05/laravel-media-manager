@@ -6,9 +6,12 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Log;
 use Innopanda\AssetManager\Models\Asset;
+use Innopanda\AssetManager\Traits\WithConfirmation;
 
 class BrowserPreview extends Component
 {
+    use WithConfirmation;
+
     public ?Asset $asset = null;
 
     #[On('preview-asset')]
