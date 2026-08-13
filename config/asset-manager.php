@@ -6,14 +6,27 @@ return [
 
     'disk' => env('ASSET_MANAGER_DISK', 'public'),
 
-    'max_upload_size' => 10240,
+    'uploads' => [
+        'max_size' => 10240, // KB
+        
+        'allowed_mimes' => [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+            'image/svg+xml',
+            'application/pdf',
+        ],
 
-    'allowed_mime_types' => [
-        'image/jpeg',
-        'image/png',
-        'image/webp',
-        'image/svg+xml',
-        'application/pdf',
+        'allowed_extensions' => [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+            'gif',
+            'svg',
+            'pdf',
+        ],
     ],
 
     'thumbnails' => [
@@ -36,7 +49,10 @@ return [
 
     'chunk_upload' => true,
 
-    'duplicate_detection' => true,
+    'duplicates' => [
+        'enabled' => true,
+        'behavior' => 'warn', // warn, reject, allow
+    ],
 
     'favorites' => true,
 

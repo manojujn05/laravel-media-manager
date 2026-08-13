@@ -12,13 +12,9 @@ class BrowserGrid extends Component
     use WithPagination;
 
     public string $search = '';
-
     public string $sort = 'latest';
-
     public string $view = 'grid';
-
     public array $selected = [];
-
     protected string $paginationTheme = 'tailwind';
 
     #[On('asset-search')]
@@ -46,14 +42,11 @@ class BrowserGrid extends Component
     public function toggleSelection(int $assetId): void
     {
         if (in_array($assetId, $this->selected)) {
-
             $this->selected = array_values(
                 array_diff($this->selected, [$assetId])
             );
-
             return;
         }
-
         $this->selected[] = $assetId;
     }
 
@@ -73,32 +66,25 @@ class BrowserGrid extends Component
     public function getAssetsProperty()
     {
         return Asset::query()
-
             ->when($this->search, function ($query) {
-
                 $query->where('title', 'like', "%{$this->search}%");
             })
-
             ->when(
                 $this->sort === 'latest',
                 fn($q) => $q->latest()
             )
-
             ->when(
                 $this->sort === 'oldest',
                 fn($q) => $q->oldest()
             )
-
             ->when(
                 $this->sort === 'name',
                 fn($q) => $q->orderBy('title')
             )
-
             ->when(
                 $this->sort === 'size',
                 fn($q) => $q->orderByDesc('size')
             )
-
             ->paginate(24);
     }
 

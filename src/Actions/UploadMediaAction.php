@@ -5,11 +5,16 @@ namespace Innopanda\AssetManager\Actions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Innopanda\AssetManager\Models\Asset;
+use Innopanda\AssetManager\Models\AssetActivityLog;
 use Innopanda\AssetManager\DTOs\UploadMediaData;
+use Innopanda\AssetManager\Services\AssetValidationService;
 use Throwable;
 
 class UploadMediaAction
 {
+    public function __construct(protected AssetValidationService $validator)
+    {}
+
     public function execute(
         UploadedFile $file,
         UploadMediaData $data,
@@ -24,19 +29,35 @@ class UploadMediaAction
         ]);
 
         try {
-            $folderId = !empty($data->folder_id) ? $data->folder_id : null;
+            // Validate file
+            $this->validator->validate($file);
 
+            $folderId = !empty($data->folder_id) ? $data->folder_id : null;
             $clientOriginalName = $file->getClientOriginalName();
             
             $mimeType = $file->getMimeType() ?: 'application/octet-stream';
             $extension = strtolower($file->getClientOriginalExtension());
-            
             if (empty($extension)) {
                 $extension = strtolower(pathinfo($clientOriginalName, PATHINFO_EXTENSION));
             }
 
             $size = $file->getSize();
             [$width, $height] = @getimagesize($file->getRealPath()) ?: [null, null];
+            $hash = hash_file('sha256', $file->getRealPath());
+
+            if (!$asset && config('asset-manager.duplicates.enabled', true) && !$data->force_upload) {
+                $duplicate = Asset::where('hash', $hash)
+                    ->where('folder_id', $folderId)
+                    ->first();
+                if ($duplicate) {
+                    $behavior = config('asset-manager.duplicates.behavior', 'warn');
+                    if ($behavior === 'warn') {
+                        throw new \Innopanda\AssetManager\Exceptions\AssetDuplicateException("This file already exists.", $duplicate);
+                    } elseif ($behavior === 'reject') {
+                        throw new \Innopanda\AssetManager\Exceptions\AssetDuplicateException("Duplicate uploads are not allowed.", $duplicate);
+                    }
+                }
+            }
 
             if (!$asset) {
                 $title = $data->title ?? pathinfo($clientOriginalName, PATHINFO_FILENAME);
@@ -59,24 +80,32 @@ class UploadMediaAction
                 ])
                 ->toMediaCollection($collection, $disk);
 
-            // 💡 Fix: Full URL ki jagah Spatie ka relative path ya custom relative format save karein
-            // Jaise: $media->id . '/' . $media->file_name ya fir relative path
             $relativePath = $media->id . '/' . $media->file_name;
 
-            Log::info('Step 3: Updating Asset Model with Metadata...');
-
-            $updated = $asset->update([
+            $asset->update([
                 'folder_id'   => $folderId ?? $asset->folder_id,
                 'title'       => $data->title ?? pathinfo($clientOriginalName, PATHINFO_FILENAME),
-                'path'        => $relativePath, // Ab yahan clean relative path save hoga (e.g., 6/Management-icon.png)
+                'path'        => $relativePath,
                 'disk'        => $media->disk,
                 'mime_type'   => $mimeType,
                 'extension'   => $extension,
                 'size'        => $media->size ?? $size,
+                'hash'        => $hash,
                 'width'       => $width,
                 'height'      => $height,
                 'alt'         => $data->alt ?? $asset->alt,
                 'description' => $data->description ?? $asset->description,
+            ]);
+
+            // Log activity
+            AssetActivityLog::create([
+                'asset_id' => $asset->id,
+                'user_id' => auth()->id(),
+                'action' => 'uploaded',
+                'metadata' => [
+                    'file_name' => $clientOriginalName,
+                    'size' => $size,
+                ]
             ]);
 
             Log::info('--- Asset Upload Process Completed Successfully ---');

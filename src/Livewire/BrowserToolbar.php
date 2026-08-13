@@ -7,11 +7,8 @@ use Livewire\Component;
 class BrowserToolbar extends Component
 {
     public string $search = '';
-
     public string $sort = 'latest';
-
     public string $view = 'grid';
-
     public function updatedSearch(): void
     {
         $this->dispatch(
@@ -27,11 +24,9 @@ class BrowserToolbar extends Component
             sort: $this->sort
         );
     }
-
     public function gridView(): void
     {
         $this->view = 'grid';
-
         $this->dispatch(
             'asset-view',
             view: 'grid'
@@ -41,7 +36,6 @@ class BrowserToolbar extends Component
     public function listView(): void
     {
         $this->view = 'list';
-
         $this->dispatch(
             'asset-view',
             view: 'list'

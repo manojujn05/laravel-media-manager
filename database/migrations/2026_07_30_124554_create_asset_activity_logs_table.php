@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('asset_activity_logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('action'); // uploaded, replaced, restored, renamed, moved, deleted, etc.
+            $table->json('metadata')->nullable();
             $table->timestamps();
+            
+            $table->index(['asset_id', 'created_at']);
+            $table->index(['user_id', 'created_at']);
         });
     }
 

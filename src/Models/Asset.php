@@ -14,7 +14,8 @@ use Spatie\Image\Enums\Fit;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-// Trait Import
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Innopanda\AssetManager\Exceptions\AssetInUseException;
 use Innopanda\AssetManager\Traits\HasAssetDependencies;
 
 class Asset extends Model implements HasMedia
@@ -64,10 +65,9 @@ class Asset extends Model implements HasMedia
             }
         });
 
-        // Phase 11: Prevent deletion if asset is used in active dependencies
         static::deleting(function ($asset) {
-            if ($asset->isUsedInDependencies()) {
-                throw new \Exception("Cannot delete asset because it is currently linked to active dependencies.");
+            if ($asset->usages()->exists() || $asset->isUsedInDependencies()) {
+                throw new AssetInUseException("Cannot delete asset because it is currently linked to active dependencies.");
             }
         });
     }
@@ -83,6 +83,21 @@ class Asset extends Model implements HasMedia
         return $this->belongsTo(Folder::class);
     }
 
+    public function usages(): HasMany
+    {
+        return $this->hasMany(AssetUsage::class);
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(AssetVersion::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(AssetActivityLog::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Media Collections
@@ -93,11 +108,7 @@ class Asset extends Model implements HasMedia
     {
         $this
             ->addMediaCollection('original')
-            ->acceptsFile(function (File $file) {
-                return true;
-            })
-            ->useDisk(config('asset-manager.disk', 'public'))
-            ->singleFile();
+            ->useDisk(config('asset-manager.disk', 'public'));
     }
 
     /*

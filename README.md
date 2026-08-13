@@ -2,27 +2,35 @@
 
 A professional, drop-in asset management package for Laravel, built with **Livewire** and powered by **Spatie Laravel Media Library**.
 
-Laravel Asset Manager provides a complete interface for uploading, organizing, browsing, selecting, replacing, and managing media assets. It can be used independently with Livewire or integrated directly into **Filament** forms.
+Laravel Asset Manager provides a complete interface for uploading, organizing, browsing, selecting, replacing, versioning, and managing media assets. It can be used independently with Livewire or integrated directly into **Filament** forms.
+
+---
 
 ## ✨ Features
 
 * 📁 **Virtual Folder Tree**
   Organize assets into nested folders without changing their physical storage paths.
 
-* 🔄 **Seamless File Replacement**
-  Replace an existing asset while preserving its database relationships and associations.
-
 * 🎯 **Asset Picker**
-  Browse, search, upload, and select assets through a reusable modal interface.
+  Browse, search, upload, preview, and select assets through a reusable modal interface.
 
 * 🖼️ **Thumbnail Generation**
   Generate optimized previews and thumbnails using Spatie Laravel Media Library.
 
 * 📦 **Livewire Components**
-  Use the asset browser, uploader, folder tree, picker, preview, and other components independently.
+  Use the asset browser, uploader, folder tree, picker, preview, replacement drawer, and other components independently.
 
 * ☑️ **Multiple Asset Selection**
   Select one or multiple assets depending on your application requirements.
+
+* 🔄 **File Replacement**
+  Replace an existing asset while preserving its previous versions and asset relationships.
+
+* 🕘 **Asset Version History**
+  Previous versions of replaced files are preserved and can be reviewed or restored.
+
+* 🗑️ **Custom Delete Confirmation**
+  Assets and folders use styled Livewire confirmation modals instead of native browser JavaScript confirmation dialogs.
 
 * 🏢 **Tenant-Aware Architecture**
   Supports optional tenant-based asset isolation.
@@ -35,11 +43,11 @@ Laravel Asset Manager provides a complete interface for uploading, organizing, b
 
 ---
 
-## 📋 Requirements
+# 📋 Requirements
 
 * PHP **8.3+**
 * Laravel **12 or 13**
-* Livewire **3.x**
+* Livewire **4.x**
 * Spatie Laravel Media Library **11.x**
 * Filament **4.x** — optional, only required for Filament integration
 

@@ -11,23 +11,19 @@ use Innopanda\AssetManager\Traits\WithConfirmation;
 class BrowserPreview extends Component
 {
     use WithConfirmation;
-
     public ?Asset $asset = null;
-
     #[On('preview-asset')]
     public function loadAsset(int $assetId): void
     {
         $this->asset = Asset::find($assetId);
     }
-
     public function replace(): void
     {
         $this->dispatch(
-            'open-replace-modal',
+            'open-replace-drawer',
             assetId: $this->asset?->id
         );
     }
-
     public function selectAsset(): void
     {
         if (! $this->asset) {
@@ -35,35 +31,29 @@ class BrowserPreview extends Component
 
             return;
         }
-
         $url = $this->asset->getFirstMediaUrl('original')
             ?: $this->asset->getFirstMediaUrl('assets')
             ?: (
                 str_starts_with($this->asset->path, 'http')
-                    ? $this->asset->path
-                    : \Illuminate\Support\Facades\Storage::disk(
-                        $this->asset->disk ?? 'public'
-                    )->url($this->asset->path)
+                ? $this->asset->path
+                : \Illuminate\Support\Facades\Storage::disk(
+                    $this->asset->disk ?? 'public'
+                )->url($this->asset->path)
             );
-
         $payload = json_encode([
             'id' => (int) $this->asset->id,
             'url' => $url,
         ]);
-
         Log::info('BrowserPreview: dispatching image-selected', [
             'asset_id' => $this->asset->id,
             'url' => $url,
             'payload' => $payload,
         ]);
-
         $this->js("
             console.log('BrowserPreview JS: dispatching image-selected');
-
             window.dispatchEvent(new CustomEvent('image-selected', {
                 detail: {$payload}
             }));
-
             console.log('BrowserPreview JS: image-selected dispatched');
         ");
     }
@@ -73,9 +63,7 @@ class BrowserPreview extends Component
         if (! $this->asset) {
             return;
         }
-
         $url = $this->asset->getFirstMediaUrl('assets') ?: (str_starts_with($this->asset->path, 'http') ? $this->asset->path : \Illuminate\Support\Facades\Storage::disk($this->asset->disk ?? 'public')->url($this->asset->path));
-        
         $this->dispatch('open-url', url: $url);
     }
 
@@ -84,23 +72,21 @@ class BrowserPreview extends Component
         if (! $this->asset) {
             return;
         }
-
         $url = $this->asset->getFirstMediaUrl('assets') ?: (str_starts_with($this->asset->path, 'http') ? $this->asset->path : \Illuminate\Support\Facades\Storage::disk($this->asset->disk ?? 'public')->url($this->asset->path));
-        
         $this->dispatch('clipboard-copy', text: $url);
         $this->dispatch('notify', message: 'URL copied to clipboard!', type: 'success');
     }
 
-   public function download()
-{
-    if (! $this->asset) {
-        return;
-    }
+    public function download()
+    {
+        if (! $this->asset) {
+            return;
+        }
 
-    return response()->download(
-        $this->asset->getFirstMedia('assets')->getPath()
-    );
-}
+        return response()->download(
+            $this->asset->getFirstMedia('assets')->getPath()
+        );
+    }
 
     public function delete(): void
     {

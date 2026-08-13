@@ -14,12 +14,12 @@ class ThumbnailService
         string $conversion = 'thumb'
     ): string {
 
-        if (! $asset->hasMedia('assets')) {
+        if (! $asset->hasMedia('original')) {
             return '';
         }
 
         return $asset
-            ->getFirstMedia('assets')
+            ->getFirstMedia('original')
             ->getUrl($conversion);
     }
 
@@ -28,12 +28,12 @@ class ThumbnailService
      */
     public function original(Asset $asset): string
     {
-        if (! $asset->hasMedia('assets')) {
+        if (! $asset->hasMedia('original')) {
             return '';
         }
 
         return $asset
-            ->getFirstMedia('assets')
+            ->getFirstMedia('original')
             ->getUrl();
     }
 

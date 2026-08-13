@@ -96,18 +96,13 @@ class AssetManagerServiceProvider extends ServiceProvider
     {
         Livewire::component('asset-manager.media-picker', MediaPicker::class);
         Livewire::component('asset-manager.media-browser', MediaBrowser::class);
-        Livewire::component('asset-manager.browser-toolbar', BrowserToolbar::class);
-        Livewire::component('asset-manager.browser-grid', BrowserGrid::class);
-        Livewire::component('asset-manager.asset-card', AssetCard::class);
-        Livewire::component('asset-manager.browser-preview', BrowserPreview::class);
-        Livewire::component('asset-manager.browser-uploader', BrowserUploader::class);
         Livewire::component('asset-manager.browser-sidebar', BrowserSidebar::class);
         Livewire::component('asset-manager.asset-picker', AssetPicker::class);
         Livewire::component('asset-manager.folder-node', FolderNode::class);
         Livewire::component('asset-manager.create-folder', CreateFolder::class);
         Livewire::component('asset-manager.asset-picker-modal', AssetPickerModal::class);
-        Livewire::component('asset-manager.asset-uploader', AssetUploader::class);
         Livewire::component('asset-manager.folder-tree', FolderTree::class);
         Livewire::component('asset-manager.replace-file-drawer', ReplaceFileDrawer::class);
+        Livewire::component('asset-manager.version-history-modal', \Innopanda\AssetManager\Livewire\VersionHistoryModal::class);
     }
 }

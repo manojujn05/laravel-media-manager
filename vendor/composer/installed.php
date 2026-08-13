@@ -3,7 +3,7 @@
         'name' => 'innopanda/laravel-asset-manager',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'f49848a7f6ed4a5ac279236cea1ba46fae7a9bec',
+        'reference' => '0f20f6e85da333ac19f225421486ebffe4694566',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -547,7 +547,7 @@
         'innopanda/laravel-asset-manager' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f49848a7f6ed4a5ac279236cea1ba46fae7a9bec',
+            'reference' => '0f20f6e85da333ac19f225421486ebffe4694566',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

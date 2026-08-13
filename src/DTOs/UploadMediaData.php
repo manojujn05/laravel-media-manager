@@ -11,5 +11,6 @@ class UploadMediaData
         public readonly ?string $title = null,
         public readonly ?string $alt = null,
         public readonly ?string $description = null,
+        public readonly bool $force_upload = false,
     ) {}
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace Innopanda\AssetManager\Livewire;
+
 use Livewire\Component;
 use Innopanda\AssetManager\Models\Folder;
 use Illuminate\Support\Facades\Log;
@@ -91,33 +92,52 @@ class FolderNode extends Component
 
     public function delete(): void
     {
-        Log::info('--- DELETE ATTEMPT START ---');
-        Log::info('Target Folder ID: ' . $this->folder->id);
-        Log::info('Target Folder Name: ' . $this->folder->name);
+        Log::info('--- DELETE ATTEMPT START ---', [
+            'folder_id' => $this->folder->id,
+            'folder_name' => $this->folder->name,
+        ]);
 
         if ($this->folder->children()->exists()) {
-            Log::info('Blocked: Folder has child folders.');
             $this->showDeleteModal = false;
-            session()->flash('error', 'Please delete child folders first.');
-            $this->dispatch('notify', 'Please delete child folders first.');
+
+            $this->dispatch(
+                'notify',
+                message: 'Please delete child folders first.'
+            );
+
             return;
         }
 
         if ($this->folder->assets()->exists()) {
-            Log::info('Blocked: Folder contains assets count: ' . $this->folder->assets()->count());
             $this->showDeleteModal = false;
-            session()->flash('error', 'Folder contains assets. Please empty it first.');
-            $this->dispatch('notify', 'Folder contains assets.');
+
+            $this->dispatch(
+                'notify',
+                message: 'Folder contains assets. Please empty it first.'
+            );
+
             return;
         }
 
-        Log::info('Passed all checks. Executing delete for ID: ' . $this->folder->id);
+        $folderId = $this->folder->id;
+
         $this->folder->delete();
 
         $this->showDeleteModal = false;
-        $this->dispatch('folder-deleted');
-        $this->dispatch('notify', 'Folder deleted successfully!');
-        Log::info('--- DELETE ATTEMPT END ---');
+
+        $this->dispatch(
+            'folder-deleted',
+            folderId: $folderId
+        );
+
+        $this->dispatch(
+            'notify',
+            message: 'Folder deleted successfully!'
+        );
+
+        Log::info('--- DELETE ATTEMPT END ---', [
+            'folder_id' => $folderId,
+        ]);
     }
 
     public function render()

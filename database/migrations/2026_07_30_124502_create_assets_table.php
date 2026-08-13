@@ -39,6 +39,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->index(['folder_id', 'is_favorite']);
+            $table->index(['folder_id', 'deleted_at']);
+            $table->index(['folder_id', 'mime_type']);
         });
     }
 

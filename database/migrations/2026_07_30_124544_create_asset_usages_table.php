@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('asset_usages', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
+            $table->morphs('usable');
+            $table->string('field')->default('asset');
             $table->timestamps();
+
+            // The morphs('usable') already creates an index for [usable_type, usable_id]
         });
     }
 
