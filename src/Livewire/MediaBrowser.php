@@ -296,8 +296,9 @@ class MediaBrowser extends Component
         }
     }
 
-    public function deleteAsset(string|int $assetId, \Innopanda\AssetManager\Actions\DeleteMediaAction $action): void
+    public function deleteAsset(string|int $assetId, ?\Innopanda\AssetManager\Actions\DeleteMediaAction $action = null): void
     {
+        $action = $action ?? app(\Innopanda\AssetManager\Actions\DeleteMediaAction::class);
         $asset = Asset::find($assetId);
         
         if ($asset) {
