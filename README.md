@@ -77,6 +77,54 @@ You should see:
 innopanda/laravel-asset-manager ................................ DONE
 ```
 
+## Publish Configuration
+
+Publish the Asset Manager configuration file:
+
+```bash
+php artisan vendor:publish --tag=asset-manager-config
+```
+
+This creates:
+
+```text
+config/asset-manager.php
+```
+
+## Publish Database Migrations
+
+Publish the Asset Manager migrations to your application's `database/migrations` directory:
+
+```bash
+php artisan vendor:publish --tag=asset-manager-migrations --force
+```
+
+Then run the migrations:
+
+```bash
+php artisan migrate
+```
+
+Verify the migration status:
+
+```bash
+php artisan migrate:status
+```
+
+## Publish Frontend Assets
+
+Publish the compiled Asset Manager frontend assets:
+
+```bash
+php artisan vendor:publish --tag=asset-manager-assets --force
+```
+
+The assets will be copied to:
+
+```text
+public/vendor/asset-manager
+```
+
 ---
 
 # ⚙️ Configuration
@@ -145,25 +193,55 @@ Adjust the configuration according to your application's requirements.
 
 # 🗄️ Database Migrations
 
-The package contains its migrations and automatically loads them through the package service provider.
+The package includes all required database migrations for asset management.
 
-You do **not** need to publish the package migrations manually.
+Publish the package migrations to your application's `database/migrations` directory:
 
-Run:
+```bash
+php artisan vendor:publish --tag=asset-manager-migrations --force
+```
+
+This publishes the Asset Manager migrations, including:
+
+```text
+database/migrations/
+├── 2026_07_30_124420_create_asset_folders_table.php
+├── 2026_07_30_124502_create_assets_table.php
+├── 2026_07_30_124544_create_asset_usages_table.php
+├── 2026_07_30_124554_create_asset_activity_logs_table.php
+├── 2026_08_04_061714_create_media_table.php
+└── 2026_08_13_000000_create_asset_versions_table.php
+```
+
+The `asset_versions` migration is required for **File Replacement** and **Asset Version History** functionality.
+
+After publishing the migrations, run:
 
 ```bash
 php artisan migrate
 ```
 
-To verify the migrations:
+To verify the migration status:
 
 ```bash
 php artisan migrate:status
 ```
 
-The package creates the required tables for asset management, folders, tags, usages, activity logs, versions, and related functionality.
+> **Note:** The package also loads its migrations automatically. Publishing them is recommended when you want the migration files available directly in your Laravel application's `database/migrations` directory and managed alongside your application's migrations.
 
-> Spatie Laravel Media Library also requires its own `media` table. Make sure the Spatie migrations have been published/applied in your application.
+### Spatie Media Library
+
+Laravel Asset Manager uses **Spatie Laravel Media Library** for media storage and management.
+
+Make sure the required Spatie migrations are also available in your application.
+
+If required, publish the Spatie Media Library migrations and then run:
+
+```bash
+php artisan migrate
+```
+
+The Asset Manager requires the media-related tables to be available before uploading and managing assets.
 
 ---
 
