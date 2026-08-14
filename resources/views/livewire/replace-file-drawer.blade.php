@@ -35,6 +35,15 @@
                                 <input type="file" wire:model="newFile" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                                 @error('newFile') <span class="text-xs text-rose-500 font-semibold mt-1 block">{{ $message }}</span> @enderror
                             </div>
+
+                            @if($errorMessage)
+                                <div class="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $errorMessage }}
+                                </div>
+                            @endif
                         </form>
                     </div>
 

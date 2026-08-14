@@ -10,17 +10,24 @@ use Illuminate\Support\Facades\Storage;
         @php
         $disk = $asset->disk ?? 'public';
 
-        if (filter_var($asset->path, FILTER_VALIDATE_URL)) {
-        $assetUrl = $asset->path;
-        } else {
-        $cleanPath = ltrim(str_replace('public/', '', $asset->path), '/');
-        $assetUrl = asset('storage/' . $cleanPath);
+        $assetUrl = $asset->getFirstMediaUrl('original', 'thumb');
+        
+        if (!$assetUrl) {
+            $assetUrl = $asset->getFirstMediaUrl('assets', 'thumb');
+        }
+
+        if (!$assetUrl) {
+            if (filter_var($asset->path, FILTER_VALIDATE_URL)) {
+                $assetUrl = $asset->path;
+            } else {
+                $cleanPath = ltrim(str_replace('public/', '', $asset->path), '/');
+                $assetUrl = asset('storage/' . $cleanPath);
+            }
         }
 
         $extension = strtolower($asset->extension ?? pathinfo($asset->path, PATHINFO_EXTENSION));
         $isImage = str_starts_with($asset->mime_type ?? '', 'image/')
-        || in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'])
-        || in_array($mime ?? '', ['application/octet-stream', 'binary/octet-stream']) && in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
+        || in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
         @endphp
 
         <div wire:key="asset-{{ $asset->id }}" class="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200/90 bg-white shadow-sm transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">

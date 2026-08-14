@@ -2,7 +2,7 @@
 <div class="flex h-full flex-col bg-white dark:bg-gray-900">
 
     {{-- Header --}}
-    <div class="border-b border-gray-200 dark:border-gray-800 px-5 py-4">
+    <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-2">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
             Media Library
         </h2>
@@ -15,7 +15,7 @@
     {{-- Scroll Area --}}
     <div class="flex-1 overflow-y-auto">
         {{-- Folder Section --}}
-        <div class="border-b border-gray-200 dark:border-gray-800 px-5 py-4">
+        <div class="border-b border-gray-200 dark:border-gray-800 px-0 py-1">
             <div class="mb-3 flex items-center justify-between">
 
                 <h3 class="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
