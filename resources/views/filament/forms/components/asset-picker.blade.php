@@ -76,7 +76,7 @@
             <button
                 x-show="selectedAssets.length === 0"
                 type="button"
-                x-on:click="$dispatch('asset-picker-opened', { pickerId: '{{ $getId() }}', selection: selectedAssets.map(a => a.id).filter(id => id !== null) }); isOpen = true"
+                x-on:click="$wire.dispatch('asset-picker-opened', { pickerId: '{{ $getId() }}', selection: selectedAssets.map(a => a.id).filter(id => id !== null) }); isOpen = true"
                 class="shrink-0 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold shadow-sm transition-colors text-sm"
             >
                 {{ $isMultiple() ? 'Select Images' : 'Select Image' }}
@@ -86,7 +86,7 @@
                 x-show="selectedAssets.length > 0"
                 x-cloak
                 type="button"
-                x-on:click="$dispatch('asset-picker-opened', { pickerId: '{{ $getId() }}', selection: selectedAssets.map(a => a.id).filter(id => id !== null) }); isOpen = true"
+                x-on:click="$wire.dispatch('asset-picker-opened', { pickerId: '{{ $getId() }}', selection: selectedAssets.map(a => a.id).filter(id => id !== null) }); isOpen = true"
                 class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold shadow-sm transition-colors text-sm"
             >
                 {{ $isMultiple() ? 'Add / Change Images' : 'Change Image' }}

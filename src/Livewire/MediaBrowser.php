@@ -58,6 +58,11 @@ class MediaBrowser extends Component
     {
         $this->pickerId = $pickerId;
         $this->multiple = $multiple;
+        
+        \Illuminate\Support\Facades\Log::info('MediaBrowser mounted', [
+            'picker_id' => $pickerId,
+            'multiple' => $multiple,
+        ]);
     }
 
     protected $listeners = [
@@ -310,6 +315,12 @@ class MediaBrowser extends Component
 
     public function selectAsset(string|int $assetId): void
     {
+        \Illuminate\Support\Facades\Log::info('MediaBrowser selectAsset', [
+            'asset_id' => $assetId,
+            'multiple' => $this->multiple,
+            'picker_id' => $this->pickerId,
+        ]);
+
         if ($this->multiple) {
             $this->togglePickerSelection($assetId);
             return;
