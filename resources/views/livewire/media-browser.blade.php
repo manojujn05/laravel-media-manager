@@ -213,4 +213,5 @@
         });
     </script>
     @endscript
-</div>
+</div>@ i f ( $ m u l t i p l e )   < d i v   c l a s s = " p - 2   b g - g r e e n - 1 0 0   t e x t - g r e e n - 8 0 0 " > M U L T I P L E   M O D E :   Y E S < / d i v >   @ e l s e   < d i v   c l a s s = " p - 2   b g - r e d - 1 0 0   t e x t - r e d - 8 0 0 " > M U L T I P L E   M O D E :   N O < / d i v >   @ e n d i f  
+ 

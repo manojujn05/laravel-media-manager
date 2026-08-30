@@ -28,20 +28,28 @@ class AssetPicker extends Field
         }
 
         if (! $this->returnsIds()) {
-            return is_array($state) ? array_values($state) : [$state];
+            $urls = is_array($state) ? array_values($state) : [$state];
+            return array_map(fn($url) => ['id' => null, 'url' => $url], $urls);
         }
 
         $ids = is_array($state) ? $state : [$state];
-        $assets = Asset::whereIn('id', $ids)->get();
+        $assets = Asset::whereIn('id', $ids)
+            ->get()
+            ->sortBy(fn ($asset) => array_search($asset->id, $ids))
+            ->values();
         
         return $assets->map(function ($asset) {
-            return $asset->getFirstMediaUrl('original')
+            $url = $asset->getFirstMediaUrl('original')
                 ?: $asset->getFirstMediaUrl('assets')
                 ?: (
                     str_starts_with($asset->path, 'http')
                         ? $asset->path
                         : Storage::disk($asset->disk ?? 'public')->url($asset->path)
                 );
+            return [
+                'id' => $asset->id,
+                'url' => $url,
+            ];
         })->filter()->toArray();
     }
 
