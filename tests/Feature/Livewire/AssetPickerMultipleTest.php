@@ -18,10 +18,10 @@ class AssetPickerMultipleTest extends TestCase
     {
         parent::setUp();
         
-        // Create some assets
-        Asset::create(['id' => 12, 'name' => 'Image A', 'path' => 'a.jpg', 'disk' => 'public', 'mime_type' => 'image/jpeg']);
-        Asset::create(['id' => 18, 'name' => 'Image B', 'path' => 'b.jpg', 'disk' => 'public', 'mime_type' => 'image/jpeg']);
-        Asset::create(['id' => 25, 'name' => 'Image C', 'path' => 'c.jpg', 'disk' => 'public', 'mime_type' => 'image/jpeg']);
+        // Create some assets with specific IDs
+        (new Asset)->forceFill(['id' => 12, 'title' => 'Image A', 'path' => 'a.jpg', 'disk' => 'public', 'mime_type' => 'image/jpeg'])->save();
+        (new Asset)->forceFill(['id' => 18, 'title' => 'Image B', 'path' => 'b.jpg', 'disk' => 'public', 'mime_type' => 'image/jpeg'])->save();
+        (new Asset)->forceFill(['id' => 25, 'title' => 'Image C', 'path' => 'c.jpg', 'disk' => 'public', 'mime_type' => 'image/jpeg'])->save();
     }
 
     public function test_single_selection_dispatches_correct_event()
@@ -82,7 +82,7 @@ class AssetPickerMultipleTest extends TestCase
             ->call('selectAsset', 12)
             ->call('selectFolder', 99)
             ->assertSet('pickerSelectedAssets', [12])
-            ->set('page', 2)
+            ->call('gotoPage', 2)
             ->call('selectAsset', 18)
             ->assertSet('pickerSelectedAssets', [12, 18]);
     }

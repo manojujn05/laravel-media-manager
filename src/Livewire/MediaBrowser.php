@@ -60,6 +60,10 @@ class MediaBrowser extends Component
         $this->multiple = $multiple;
     }
 
+    protected $listeners = [
+        'asset-picker-opened' => 'handlePickerOpened',
+    ];
+
     #[Livewire\Attributes\On('asset-picker-opened')]
     public function handlePickerOpened(string $pickerId, array $selection): void
     {
