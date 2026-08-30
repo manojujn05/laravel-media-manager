@@ -368,12 +368,48 @@ AssetPicker::make('image')
 
 ## Multiple Selection
 
-To allow multiple assets:
+To allow multiple assets, simply use `->multiple()`.
+
+By default, the Asset Picker will return an array of URLs for backward compatibility. 
 
 ```php
 AssetPicker::make('gallery')
     ->label('Gallery Images')
     ->multiple();
+```
+
+Resulting Filament Form State:
+```php
+'gallery' => [
+    'https://example.com/storage/image-1.jpg',
+    'https://example.com/storage/image-2.jpg',
+]
+```
+
+### Save as IDs
+
+If your application prefers to store Asset IDs instead of URLs (e.g. for `BelongsToMany` relationships or JSON columns), use the `->returnIds()` method (or `->saveAsId()`):
+
+```php
+AssetPicker::make('gallery')
+    ->label('Gallery Images')
+    ->multiple()
+    ->returnIds(); // or ->saveAsId()
+```
+
+Resulting Filament Form State:
+```php
+'gallery' => [
+    12,
+    18,
+    25
+]
+```
+
+You can also use `->returnIds()` with single selection:
+```php
+AssetPicker::make('image')
+    ->returnIds(); // State will be: 'image' => 12
 ```
 
 This makes the Asset Manager suitable for:

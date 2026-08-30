@@ -48,6 +48,9 @@ class MediaBrowser extends Component
     
 
     public string $pickerId = '';
+    
+    public bool $multiple = false;
+    public array $pickerSelectedAssets = [];
 
     public bool $showInUseModal = false;
     public string $inUseMessage = '';
@@ -247,8 +250,64 @@ class MediaBrowser extends Component
         $this->previewAsset = $assetId;
     }
 
+    public function togglePickerSelection(string|int $assetId): void
+    {
+        if (in_array($assetId, $this->pickerSelectedAssets)) {
+            $this->pickerSelectedAssets = array_values(
+                array_diff($this->pickerSelectedAssets, [$assetId])
+            );
+        } else {
+            $this->pickerSelectedAssets[] = $assetId;
+        }
+    }
+
+    public function confirmSelection(): void
+    {
+        if (empty($this->pickerSelectedAssets)) {
+            return;
+        }
+
+        $assets = Asset::whereIn('id', $this->pickerSelectedAssets)->get();
+        $payloadData = [];
+
+        foreach ($assets as $asset) {
+            $url = $asset->getFirstMediaUrl('original')
+                ?: $asset->getFirstMediaUrl('assets')
+                ?: (
+                    str_starts_with($asset->path, 'http')
+                        ? $asset->path
+                        : \Illuminate\Support\Facades\Storage::disk(
+                            $asset->disk ?? 'public'
+                        )->url($asset->path)
+                );
+
+            $payloadData[] = [
+                'id' => (int) $asset->id,
+                'url' => $url,
+            ];
+        }
+
+        $payload = json_encode([
+            'pickerId' => $this->pickerId,
+            'assets' => $payloadData,
+        ]);
+
+        $this->js("
+            window.dispatchEvent(new CustomEvent('asset-manager:assets-selected', {
+                detail: {$payload}
+            }));
+        ");
+        
+        $this->pickerSelectedAssets = [];
+    }
+
     public function selectAsset(string|int $assetId): void
     {
+        if ($this->multiple) {
+            $this->togglePickerSelection($assetId);
+            return;
+        }
+
         $asset = Asset::find($assetId);
 
         if (! $asset) {
@@ -269,10 +328,19 @@ class MediaBrowser extends Component
             'pickerId' => $this->pickerId,
             'id' => (int) $asset->id,
             'url' => $url,
+            'assets' => [
+                [
+                    'id' => (int) $asset->id,
+                    'url' => $url,
+                ]
+            ]
         ]);
 
         $this->js("
             window.dispatchEvent(new CustomEvent('asset-manager:image-selected', {
+                detail: {$payload}
+            }));
+            window.dispatchEvent(new CustomEvent('asset-manager:assets-selected', {
                 detail: {$payload}
             }));
         ");

@@ -28,9 +28,11 @@ use Illuminate\Support\Facades\Storage;
         $extension = strtolower($asset->extension ?? pathinfo($asset->path, PATHINFO_EXTENSION));
         $isImage = str_starts_with($asset->mime_type ?? '', 'image/')
         || in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
+        
+        $isPickerSelected = in_array($asset->id, $pickerSelectedAssets);
         @endphp
 
-        <div wire:key="asset-{{ $asset->id }}" class="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200/90 bg-white shadow-sm transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div wire:key="asset-{{ $asset->id }}" class="group relative flex flex-col overflow-hidden rounded-xl border {{ $isPickerSelected ? 'border-indigo-500 ring-2 ring-indigo-500' : 'border-gray-200/90' }} bg-white shadow-sm transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg dark:{{ $isPickerSelected ? 'border-indigo-500' : 'border-gray-700' }} dark:bg-gray-800">
 
             {{-- Asset Preview Container with reduced height (h-32) to prevent page scrolling and fill card properly --}}
             <div wire:click="preview({{ $asset->id }})" class="relative h-32 w-full cursor-pointer overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100/60 dark:from-gray-900/40 dark:to-gray-900/80 flex items-center justify-center">
@@ -53,7 +55,8 @@ use Illuminate\Support\Facades\Storage;
                     </span>
                 </div>
                 @endif
-                {{-- Checkbox Top Left --}}
+                
+                {{-- Checkbox Top Left (For Bulk Actions) --}}
                 <div class="absolute left-2.5 top-2.5 z-0 p-1 rounded" onclick="event.stopPropagation()">
                     <input
                         type="checkbox"
@@ -61,6 +64,15 @@ use Illuminate\Support\Facades\Storage;
                         wire:model.live="selectedAssets"
                         class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shadow-sm transition">
                 </div>
+
+                {{-- Picker Selection Checkmark --}}
+                @if($isPickerSelected)
+                    <div class="absolute right-2.5 top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                @endif
             </div>
 
             {{-- Card Footer Info --}}
@@ -74,8 +86,8 @@ use Illuminate\Support\Facades\Storage;
                 <button
                     type="button"
                     wire:click="selectAsset({{ $asset->id }})"
-                    class="mt-1.5 w-full rounded-md bg-indigo-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors">
-                    Select
+                    class="mt-1.5 w-full rounded-md {{ $isPickerSelected ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50' : 'bg-indigo-600 text-white hover:bg-indigo-700' }} px-2 py-1 text-[11px] font-bold shadow-sm transition-colors">
+                    {{ $isPickerSelected ? 'Selected' : 'Select' }}
                 </button>
             </div>
 

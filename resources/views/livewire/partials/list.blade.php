@@ -15,6 +15,7 @@
                     <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">Type</th>
                     <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400">Size</th>
                     <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">Uploaded</th>
+                    <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">Action</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-900">
@@ -30,12 +31,14 @@
                         $extension = strtolower($asset->extension ?? pathinfo($asset->path, PATHINFO_EXTENSION));
                         $isImage = str_starts_with($asset->mime_type ?? '', 'image/') 
                             || in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
+                            
+                        $isPickerSelected = in_array($asset->id, $pickerSelectedAssets);
                     @endphp
 
                     <tr 
                         wire:key="asset-list-{{ $asset->id }}" 
                         wire:click="preview({{ $asset->id }})"
-                        class="group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors {{ $previewAsset == $asset->id ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : '' }}"
+                        class="group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors {{ $previewAsset == $asset->id ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : '' }} {{ $isPickerSelected ? 'bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500' : '' }}"
                     >
                         <td class="whitespace-nowrap px-4 py-3 w-12" onclick="event.stopPropagation()">
                             <input 
@@ -74,6 +77,16 @@
 
                         <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-500 dark:text-gray-400">
                             {{ $asset->created_at?->format('M d, Y') }}
+                        </td>
+
+                        <td class="whitespace-nowrap px-4 py-3 text-right">
+                            <button
+                                type="button"
+                                onclick="event.stopPropagation()"
+                                wire:click="selectAsset({{ $asset->id }})"
+                                class="rounded-md {{ $isPickerSelected ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50' : 'bg-indigo-600 text-white hover:bg-indigo-700' }} px-3 py-1.5 text-xs font-bold shadow-sm transition-colors">
+                                {{ $isPickerSelected ? 'Selected' : 'Select' }}
+                            </button>
                         </td>
                     </tr>
                 @endforeach

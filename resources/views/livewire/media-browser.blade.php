@@ -180,6 +180,22 @@
         </div>
     @endif
 
+    {{-- Confirm Selection Button (Picker Multiple Mode) --}}
+    @if($multiple && count($pickerSelectedAssets) > 0)
+        <div class="fixed bottom-6 right-6 z-[100] animate-bounce-short">
+            <button
+                type="button"
+                wire:click="confirmSelection"
+                class="flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-xl hover:bg-indigo-700 hover:shadow-2xl transition-all"
+            >
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Confirm Selection ({{ count($pickerSelectedAssets) }})
+            </button>
+        </div>
+    @endif
+
     <livewire:asset-manager.create-folder />
     <livewire:asset-manager.replace-file-drawer />
     <livewire:asset-manager.version-history-modal />
