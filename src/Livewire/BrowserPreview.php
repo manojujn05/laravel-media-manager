@@ -31,15 +31,7 @@ class BrowserPreview extends Component
 
             return;
         }
-        $url = $this->asset->getFirstMediaUrl('original')
-            ?: $this->asset->getFirstMediaUrl('assets')
-            ?: (
-                str_starts_with($this->asset->path, 'http')
-                ? $this->asset->path
-                : \Illuminate\Support\Facades\Storage::disk(
-                    $this->asset->disk ?? 'public'
-                )->url($this->asset->path)
-            );
+        $url = $this->asset->getUrl();
         $payload = json_encode([
             'id' => (int) $this->asset->id,
             'url' => $url,
@@ -63,7 +55,7 @@ class BrowserPreview extends Component
         if (! $this->asset) {
             return;
         }
-        $url = $this->asset->getFirstMediaUrl('assets') ?: (str_starts_with($this->asset->path, 'http') ? $this->asset->path : \Illuminate\Support\Facades\Storage::disk($this->asset->disk ?? 'public')->url($this->asset->path));
+        $url = $this->asset->getUrl();
         $this->dispatch('open-url', url: $url);
     }
 
@@ -72,7 +64,7 @@ class BrowserPreview extends Component
         if (! $this->asset) {
             return;
         }
-        $url = $this->asset->getFirstMediaUrl('assets') ?: (str_starts_with($this->asset->path, 'http') ? $this->asset->path : \Illuminate\Support\Facades\Storage::disk($this->asset->disk ?? 'public')->url($this->asset->path));
+        $url = $this->asset->getUrl();
         $this->dispatch('clipboard-copy', text: $url);
         $this->dispatch('notify', message: 'URL copied to clipboard!', type: 'success');
     }

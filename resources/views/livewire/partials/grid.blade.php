@@ -8,22 +8,7 @@ use Illuminate\Support\Facades\Storage;
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         @foreach($assets as $asset)
         @php
-        $disk = $asset->disk ?? 'public';
-
-        $assetUrl = $asset->getFirstMediaUrl('original', 'thumb');
-        
-        if (!$assetUrl) {
-            $assetUrl = $asset->getFirstMediaUrl('assets', 'thumb');
-        }
-
-        if (!$assetUrl) {
-            if (filter_var($asset->path, FILTER_VALIDATE_URL)) {
-                $assetUrl = $asset->path;
-            } else {
-                $cleanPath = ltrim(str_replace('public/', '', $asset->path), '/');
-                $assetUrl = asset('storage/' . $cleanPath);
-            }
-        }
+        $assetUrl = $asset->getUrl('thumb');
 
         $extension = strtolower($asset->extension ?? pathinfo($asset->path, PATHINFO_EXTENSION));
         $isImage = str_starts_with($asset->mime_type ?? '', 'image/')

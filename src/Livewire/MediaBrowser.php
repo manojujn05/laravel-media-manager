@@ -288,15 +288,7 @@ class MediaBrowser extends Component
         $payloadData = [];
 
         foreach ($assets as $asset) {
-            $url = $asset->getFirstMediaUrl('original')
-                ?: $asset->getFirstMediaUrl('assets')
-                ?: (
-                    str_starts_with($asset->path, 'http')
-                        ? $asset->path
-                        : \Illuminate\Support\Facades\Storage::disk(
-                            $asset->disk ?? 'public'
-                        )->url($asset->path)
-                );
+            $url = $asset->getUrl();
 
             $payloadData[] = [
                 'id' => (int) $asset->id,
@@ -332,15 +324,7 @@ class MediaBrowser extends Component
             return;
         }
 
-        $url = $asset->getFirstMediaUrl('original')
-            ?: $asset->getFirstMediaUrl('assets')
-            ?: (
-                str_starts_with($asset->path, 'http')
-                    ? $asset->path
-                    : \Illuminate\Support\Facades\Storage::disk(
-                        $asset->disk ?? 'public'
-                    )->url($asset->path)
-            );
+        $url = $asset->getUrl();
 
         $this->dispatch(
             'asset-manager:image-selected',
@@ -414,7 +398,7 @@ class MediaBrowser extends Component
     {
         $asset = Asset::find($assetId);
         if ($asset) {
-            $url = $asset->getFirstMediaUrl('assets') ?: (str_starts_with($asset->path, 'http') ? $asset->path : \Illuminate\Support\Facades\Storage::disk($asset->disk ?? 'public')->url($asset->path));
+            $url = $asset->getUrl();
             $this->dispatch('copy-to-clipboard', url: $url);
             $this->dispatch('notify', 'URL copied successfully!', 'success');
         }

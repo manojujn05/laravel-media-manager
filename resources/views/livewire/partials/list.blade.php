@@ -21,13 +21,7 @@
             <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-900">
                 @foreach($assets as $asset)
                     @php
-                        $disk = $asset->disk ?? 'public';
-                        if (filter_var($asset->path, FILTER_VALIDATE_URL)) {
-                            $assetUrl = $asset->path;
-                        } else {
-                            $cleanPath = ltrim(str_replace('public/', '', $asset->path), '/');
-                            $assetUrl = asset('storage/' . $cleanPath);
-                        }
+                        $assetUrl = $asset->getUrl('thumb');
                         $extension = strtolower($asset->extension ?? pathinfo($asset->path, PATHINFO_EXTENSION));
                         $isImage = str_starts_with($asset->mime_type ?? '', 'image/') 
                             || in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);

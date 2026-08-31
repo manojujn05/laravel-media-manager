@@ -34,20 +34,7 @@
             <div class="p-6 pb-2">
                 <div class="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-200/60 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex items-center justify-center shadow-sm">
                    @php
-                    $disk = $asset->disk ?? 'public';
-                    
-                    $assetUrl = $asset->getFirstMediaUrl('original', 'medium');
-                    if (!$assetUrl) {
-                        $assetUrl = $asset->getFirstMediaUrl('assets', 'medium');
-                    }
-                    if (!$assetUrl) {
-                        if (filter_var($asset->path, FILTER_VALIDATE_URL)) {
-                            $assetUrl = $asset->path;
-                        } else {
-                            $cleanPath = ltrim(str_replace('public/', '', $asset->path), '/');
-                            $assetUrl = asset('storage/' . $cleanPath);
-                        }
-                    }
+                    $assetUrl = $asset->getUrl('medium');
 
                     $extension = strtolower($asset->extension ?? pathinfo($asset->path, PATHINFO_EXTENSION));
                     $isImage = str_starts_with($asset->mime_type ?? '', 'image/') 
@@ -127,7 +114,7 @@
             {{-- SaaS Style Action Buttons --}}
             <div class="border-t border-gray-100 dark:border-gray-900 p-1 bg-gray-50/30 dark:bg-gray-900/20">
                 @php
-                    $fileUrl = function_exists('asset_url') ? asset_url($asset) : Storage::disk($asset->disk ?? 'public')->url($asset->path);
+                    $fileUrl = function_exists('asset_url') ? asset_url($asset) : $asset->getUrl();
                 @endphp
 
                 <div class="flex flex-col gap-2.5">

@@ -20,7 +20,7 @@ class AssetResource extends JsonResource
             'title' => $this->title,
             'alt_text' => $this->alt,
             'path' => $this->path,
-            'url' => Storage::disk($this->disk)->url($this->path),
+            'url' => $this->getUrl(),
             'mime_type' => $this->mime_type,
             'size' => $this->size,
             'formatted_size' => number_format($this->size / 1024, 2) . ' KB',

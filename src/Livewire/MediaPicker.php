@@ -80,9 +80,7 @@ class MediaPicker extends Component
 
         $asset = Asset::find($this->selectedAssetId);
         if ($asset) {
-            $this->selectedAssetUrl = $asset->getFirstMediaUrl('original') 
-                ?: $asset->getFirstMediaUrl('assets') 
-                ?: (str_starts_with($asset->path, 'http') ? $asset->path : \Illuminate\Support\Facades\Storage::disk($asset->disk ?? 'public')->url($asset->path));
+            $this->selectedAssetUrl = $asset->getUrl();
         }
     }
 
@@ -118,9 +116,7 @@ class MediaPicker extends Component
         }
 
         // Always resolve from server as authoritative truth, fallback to passed URL
-        $resolvedUrl = $asset->getFirstMediaUrl('original') 
-            ?: $asset->getFirstMediaUrl('assets') 
-            ?: (str_starts_with($asset->path, 'http') ? $asset->path : \Illuminate\Support\Facades\Storage::disk($asset->disk ?? 'public')->url($asset->path));
+        $resolvedUrl = $asset->getUrl();
         
         $this->selectedAssetUrl = $resolvedUrl ?: $url;
         $this->selectedAssetId = (int) $asset->id;

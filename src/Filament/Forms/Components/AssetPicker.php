@@ -39,13 +39,7 @@ class AssetPicker extends Field
             ->values();
         
         return $assets->map(function ($asset) {
-            $url = $asset->getFirstMediaUrl('original')
-                ?: $asset->getFirstMediaUrl('assets')
-                ?: (
-                    str_starts_with($asset->path, 'http')
-                        ? $asset->path
-                        : Storage::disk($asset->disk ?? 'public')->url($asset->path)
-                );
+            $url = $asset->getUrl();
             return [
                 'id' => $asset->id,
                 'url' => $url,

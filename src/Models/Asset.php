@@ -134,5 +134,32 @@ class Asset extends Model implements HasMedia
             ->fit(Fit::Contain, 800, 800)
             ->performOnCollections('original');
     }
-    
+
+    /*
+    |--------------------------------------------------------------------------
+    | URL Generation
+    |--------------------------------------------------------------------------
+    */
+
+    public function getUrl(string $conversion = ''): string
+    {
+        $url = $this->getFirstMediaUrl('original', $conversion);
+
+        if (!$url) {
+            $url = $this->getFirstMediaUrl('assets', $conversion);
+        }
+
+        if (!$url) {
+            if (filter_var($this->path, FILTER_VALIDATE_URL)) {
+                $url = $this->path;
+            } elseif ($this->path) {
+                $disk = $this->disk ?? config('asset-manager.disk', 'public');
+                $url = \Illuminate\Support\Facades\Storage::disk($disk)->url($this->path);
+            } else {
+                $url = '';
+            }
+        }
+
+        return $url;
+    }
 }

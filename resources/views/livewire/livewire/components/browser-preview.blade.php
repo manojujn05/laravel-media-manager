@@ -2,7 +2,7 @@
     @if($asset)
         <div class="p-5">
             <img
-                src="{{ $asset->getFirstMediaUrl('assets') ?: (str_starts_with($asset->path, 'http') ? $asset->path : Storage::disk($asset->disk ?? 'public')->url($asset->path)) }}"
+                src="{{ $asset->getUrl() }}"
                 alt="{{ $asset->title }}"
                 class="w-full h-48 rounded-lg border object-cover">
 
