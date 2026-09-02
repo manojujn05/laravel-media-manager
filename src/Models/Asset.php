@@ -156,7 +156,10 @@ class Asset extends Model implements HasMedia
                 $disk = $this->disk ?? config('asset-manager.disk', 'public');
                 $storage = \Illuminate\Support\Facades\Storage::disk($disk);
                 if (config('asset-manager.sync.private_urls', false)) {
-                    $expiration = now()->addMinutes(config('asset-manager.sync.temporary_url_expiration', 60));
+                  
+                //    $expiration = now()->addMinutes(config('asset-manager.sync.temporary_url_expiration', 60));
+                   $expirationMinutes = (int) config('asset-manager.sync.temporary_url_expiration', 60);
+                   $expiration = now()->addMinutes($expirationMinutes);
                     try {
                         $url = $storage->temporaryUrl($this->path, $expiration);
                     } catch (\Exception $e) {

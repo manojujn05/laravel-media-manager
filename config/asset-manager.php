@@ -9,7 +9,7 @@ return [
     'sync' => [
         'root_path' => env('ASSET_MANAGER_ROOT', '/'),
         'private_urls' => env('ASSET_MANAGER_PRIVATE_URLS', false),
-        'temporary_url_expiration' => env('ASSET_MANAGER_TEMP_URL_EXPIRES', 60), // minutes
+        'temporary_url_expiration' => (int) env('ASSET_MANAGER_TEMP_URL_EXPIRES', 60),
     ],
 
     'uploads' => [
