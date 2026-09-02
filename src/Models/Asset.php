@@ -143,36 +143,104 @@ class Asset extends Model implements HasMedia
 
     public function getUrl(string $conversion = ''): string
     {
+        $diskName = $this->disk ?? config('asset-manager.disk', 'public');
+        $storage = \Illuminate\Support\Facades\Storage::disk($diskName);
+        $config = config("filesystems.disks.{$diskName}", []);
+        $isS3Driver = ($config['driver'] ?? null) === 's3';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Private S3
+        |--------------------------------------------------------------------------
+        |
+        | Private S3 assets must always use a temporary signed URL.
+        | This check intentionally happens before getFirstMediaUrl()
+        | because Spatie may already return a normal URL.
+        |
+        */
+        if ($isS3Driver && config('asset-manager.sync.private_urls', false)) {
+            $expirationMinutes = (int) config('asset-manager.sync.temporary_url_expiration', 60);
+
+            try {
+                return $storage->temporaryUrl(
+                    $this->path,
+                    now()->addMinutes($expirationMinutes)
+                );
+            } catch (\Throwable $e) {
+                // Fall through to normal URL generation.
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Spatie Media Library URL
+        |--------------------------------------------------------------------------
+        */
         $url = $this->getFirstMediaUrl('original', $conversion);
 
         if (!$url) {
             $url = $this->getFirstMediaUrl('assets', $conversion);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Fallback to Asset path
+        |--------------------------------------------------------------------------
+        */
         if (!$url) {
             if (filter_var($this->path, FILTER_VALIDATE_URL)) {
                 $url = $this->path;
             } elseif ($this->path) {
-                $disk = $this->disk ?? config('asset-manager.disk', 'public');
-                $storage = \Illuminate\Support\Facades\Storage::disk($disk);
-                if (config('asset-manager.sync.private_urls', false)) {
-                  
-                //    $expiration = now()->addMinutes(config('asset-manager.sync.temporary_url_expiration', 60));
-                   $expirationMinutes = (int) config('asset-manager.sync.temporary_url_expiration', 60);
-                   $expiration = now()->addMinutes($expirationMinutes);
-                    try {
-                        $url = $storage->temporaryUrl($this->path, $expiration);
-                    } catch (\Exception $e) {
-                        $url = $storage->url($this->path);
-                    }
-                } else {
-                    $url = $storage->url($this->path);
-                }
+                $url = $storage->url($this->path);
             } else {
-                $url = '';
+                return '';
             }
         }
 
-        return $url;
+        /*
+        |--------------------------------------------------------------------------
+        | Normalize URL
+        |--------------------------------------------------------------------------
+        */
+        if ($isS3Driver) {
+            return $this->normalizeS3Url($url, $config);
+        }
+
+        return $this->normalizeLocalUrl($url);
+    }
+
+    protected function normalizeS3Url(string $url, array $config): string
+    {
+        // If it's already an absolute URL, we trust Laravel's url generator
+        if (Str::startsWith($url, 'http://') || Str::startsWith($url, 'https://')) {
+            return $url;
+        }
+
+        $bucket = $config['bucket'] ?? '';
+        $region = $config['region'] ?? 'us-east-1';
+        $endpoint = $config['endpoint'] ?? null;
+        $configuredUrl = $config['url'] ?? null;
+
+        // Clean up the relative path
+        $path = ltrim($url, '/');
+
+        if ($configuredUrl) {
+            return rtrim($configuredUrl, '/') . '/' . $path;
+        } elseif ($endpoint) {
+            // For custom endpoints like MinIO
+            return rtrim($endpoint, '/') . '/' . $bucket . '/' . $path;
+        }
+
+        // Standard AWS S3 format
+        return "https://{$bucket}.s3.{$region}.amazonaws.com/" . $path;
+    }
+
+    protected function normalizeLocalUrl(string $url): string
+    {
+        if (Str::startsWith($url, 'http://') || Str::startsWith($url, 'https://')) {
+            return $url;
+        }
+        
+        return url($url);
     }
 }
