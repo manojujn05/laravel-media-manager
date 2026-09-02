@@ -6,6 +6,12 @@ return [
 
     'disk' => env('ASSET_MANAGER_DISK', 'public'),
 
+    'sync' => [
+        'root_path' => env('ASSET_MANAGER_ROOT', '/'),
+        'private_urls' => env('ASSET_MANAGER_PRIVATE_URLS', false),
+        'temporary_url_expiration' => env('ASSET_MANAGER_TEMP_URL_EXPIRES', 60), // minutes
+    ],
+
     'uploads' => [
         'max_size' => 10240, // KB
         

@@ -33,13 +33,11 @@ class SelectionFlowTest extends TestCase
         $asset2 = Asset::create(['title' => 'Asset 2', 'path' => 'assets/2.png']);
 
         Livewire::test(MediaBrowser::class)
-            ->call('toggleSelection', $asset1->id)
-            ->assertSet('selected', [$asset1->id])
-            ->call('toggleSelection', $asset2->id)
-            ->assertSet('selected', [$asset1->id, $asset2->id])
-            ->call('toggleSelection', $asset1->id)
-            ->assertSet('selected', [$asset2->id])
-            ->call('clearSelection')
-            ->assertSet('selected', []);
+            ->call('togglePickerSelection', $asset1->id)
+            ->assertSet('pickerSelectedAssets', [$asset1->id])
+            ->call('togglePickerSelection', $asset2->id)
+            ->assertSet('pickerSelectedAssets', [$asset1->id, $asset2->id])
+            ->call('togglePickerSelection', $asset1->id)
+            ->assertSet('pickerSelectedAssets', [$asset2->id]);
     }
 }

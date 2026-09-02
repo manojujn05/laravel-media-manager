@@ -66,6 +66,10 @@ class AssetManagerServiceProvider extends ServiceProvider
 
         // 3. Setup Console/Publishing Utilities
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Innopanda\AssetManager\Commands\SyncAssetsCommand::class,
+            ]);
+
             $this->publishes([
                 __DIR__ . '/../config/asset-manager.php' => config_path('asset-manager.php'),
             ], 'asset-manager-config');

@@ -263,6 +263,63 @@ You can use another Laravel filesystem disk if required.
 
 ---
 
+# ☁️ S3 Existing Files
+
+When configuring the Asset Manager to use an S3-compatible disk:
+
+```env
+ASSET_MANAGER_DISK=s3
+```
+
+You can discover and index files that were already uploaded to your S3 bucket (or uploaded externally via AWS Console, another application, etc.).
+
+## Synchronization
+
+To synchronize existing S3 objects into the Asset Manager database:
+
+```bash
+php artisan asset-manager:sync
+```
+
+**How it works:**
+1. The command scans the configured root of your S3 bucket.
+2. It creates an `Asset` database record for any file not currently indexed.
+3. **No physical duplicates are created.** Files remain in S3 and no unnecessary Spatie Media records are created.
+4. **No files are deleted.** If an S3 file is missing, the sync will report it but it won't destructively delete the database record.
+5. The `assets` table serves as the metadata index, so the Media Browser uses efficient database pagination instead of querying the S3 API directly.
+
+## Configuration Options
+
+You can control S3 discovery behavior in `config/asset-manager.php`:
+
+```php
+'sync' => [
+    // Define the root folder in your bucket to scan (default: '/')
+    // Useful if your bucket is shared with other applications.
+    'root_path' => env('ASSET_MANAGER_ROOT', '/'),
+    // Set to true if your S3 bucket is private
+    'private_urls' => env('ASSET_MANAGER_PRIVATE_URLS', false),
+    // Duration in minutes for temporary signed URLs
+    'temporary_url_expiration' => env('ASSET_MANAGER_TEMP_URL_EXPIRES', 60),
+],
+```
+
+## Scheduled Synchronization
+
+To automatically keep Asset Manager up-to-date with your bucket, you can schedule the sync command in your application's `routes/console.php` or `app/Console/Kernel.php`:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('asset-manager:sync')->hourly();
+```
+
+## Private S3 Buckets
+
+If your bucket is private, ensure you configure `ASSET_MANAGER_PRIVATE_URLS=true` in your `.env`. 
+The Asset Manager will securely generate **temporary signed URLs** for previews and downloads without exposing your AWS credentials to the browser.
+---
+
 # 🎨 Publishing Frontend Assets
 
 The package ships its compiled frontend assets.

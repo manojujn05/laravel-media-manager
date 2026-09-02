@@ -154,7 +154,17 @@ class Asset extends Model implements HasMedia
                 $url = $this->path;
             } elseif ($this->path) {
                 $disk = $this->disk ?? config('asset-manager.disk', 'public');
-                $url = \Illuminate\Support\Facades\Storage::disk($disk)->url($this->path);
+                $storage = \Illuminate\Support\Facades\Storage::disk($disk);
+                if (config('asset-manager.sync.private_urls', false)) {
+                    $expiration = now()->addMinutes(config('asset-manager.sync.temporary_url_expiration', 60));
+                    try {
+                        $url = $storage->temporaryUrl($this->path, $expiration);
+                    } catch (\Exception $e) {
+                        $url = $storage->url($this->path);
+                    }
+                } else {
+                    $url = $storage->url($this->path);
+                }
             } else {
                 $url = '';
             }
