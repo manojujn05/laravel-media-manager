@@ -29,7 +29,20 @@ class AssetPicker extends Field
 
         if (! $this->returnsIds()) {
             $urls = is_array($state) ? array_values($state) : [$state];
-            return array_map(fn($url) => ['id' => null, 'url' => $url], $urls);
+            
+            $diskName = config('asset-manager.disk', 'public');
+            $config = config("filesystems.disks.{$diskName}", []);
+            $isS3Driver = ($config['driver'] ?? null) === 's3';
+
+            return array_map(function($url) use ($isS3Driver, $config) {
+                if ($isS3Driver) {
+                    $url = Asset::normalizeS3Url($url, $config);
+                } else {
+                    $url = Asset::normalizeLocalUrl($url);
+                }
+                
+                return ['id' => null, 'url' => $url];
+            }, $urls);
         }
 
         $ids = is_array($state) ? $state : [$state];

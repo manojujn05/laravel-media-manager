@@ -203,13 +203,13 @@ class Asset extends Model implements HasMedia
         |--------------------------------------------------------------------------
         */
         if ($isS3Driver) {
-            return $this->normalizeS3Url($url, $config);
+            return static::normalizeS3Url($url, $config);
         }
 
-        return $this->normalizeLocalUrl($url);
+        return static::normalizeLocalUrl($url);
     }
 
-    protected function normalizeS3Url(string $url, array $config): string
+    public static function normalizeS3Url(string $url, array $config): string
     {
         // If it's already an absolute URL, we trust Laravel's url generator
         if (Str::startsWith($url, 'http://') || Str::startsWith($url, 'https://')) {
@@ -235,7 +235,7 @@ class Asset extends Model implements HasMedia
         return "https://{$bucket}.s3.{$region}.amazonaws.com/" . $path;
     }
 
-    protected function normalizeLocalUrl(string $url): string
+    public static function normalizeLocalUrl(string $url): string
     {
         if (Str::startsWith($url, 'http://') || Str::startsWith($url, 'https://')) {
             return $url;
